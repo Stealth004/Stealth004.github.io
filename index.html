@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Responsive Website Design | Gym & Fitness</title>
+        <link href="style.css" rel="stylesheet" />
+    </head>
+    <body>
+        <nav class="menu">
+            <ul>
+                <li><a href="javascript:void(0)" onclick="toggleMenu()">Home</a></li>
+                <li><a href="javascript:void(0)" onclick="toggleMenu()">About</a></li>
+                <li><a href="javascript:void(0)" onclick="toggleMenu()">Training</a></li>
+                <li><a href="javascript:void(0)" onclick="toggleMenu()">Team</a></li>
+                <li><a href="javascript:void(0)" onclick="toggleMenu()">Contact</a></li>
+            </ul>
+        </nav>
+        <section class="banner">
+            <header>
+                <h2 class="logo">Your logo</h2>
+                <div class="toggle"></div>
+            </header>
+            <video src="video/production ID_4753946.mp4" muted loop autoplay title="Video of a gym workout"></video>
+            <div class="overlay"></div>
+            <div class="text">
+                <h2>Be Stronger</h2>
+                <h3>Never give up</h3>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Provident quasi dolorem laborum iure iste. Illum, facere ut perferendis pariatur sint maxime cum corporis placeat ea distinctio, quos amet nulla voluptas.</p>
+                <a href="#">Join us</a>
+            </div>
+            <ul class="sci">
+                <li><a href="#"><img src="images/facebook.png" alt="Facebook logo"></a></li>
+                <li><a href="#"><img src="images/twitter.png" alt="Twitter logo"></a></li>
+                <li><a href="#"><img src="images/instagram.png" alt="Instagram logo"></a></li>
+            </ul>
+        </section>
+        <script type="text/javascript">
+            const toggleButton = document.querySelector('.toggle');
+            const banner = document.querySelector('.banner');
+            const menuLinks = document.querySelectorAll('.menu a');
+            
+            toggleButton.addEventListener('click', toggleMenu);
+            menuLinks.forEach(link => link.addEventListener('click', toggleMenu));
+            
+            function toggleMenu() {
+                if (banner.classList.contains('active')) {
+                    banner.classList.remove('active');
+                } else {
+                    banner.classList.add('active');
+                }
+            }
+        </script>
+    </body>
+</html>
