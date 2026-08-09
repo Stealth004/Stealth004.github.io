@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Interactive CompTIA Security+ SY0-701 WiFi installation and enterprise wireless configuration PBQ practice lab." />
+  <title>Security+ SY0-701 WiFi Installation PBQ</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#06101c; --panel:#0c1b2b; --panel2:#10263c; --line:#294761;
+      --text:#edf7ff; --muted:#9db3c6; --accent:#39c6f4; --accent2:#24d6c7;
+      --ok:#34d399; --bad:#fb7185; --warn:#fbbf24; --violet:#a78bfa;
+      --shadow:0 14px 40px rgba(0,0,0,.28); --radius:18px;
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;min-height:100vh;background:radial-gradient(circle at 10% -8%,rgba(57,198,244,.17),transparent 34rem),linear-gradient(180deg,#05101c,var(--bg));color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+    button,select,input{font:inherit} button{cursor:pointer} a{color:var(--accent)}
+    .shell{width:min(1220px,calc(100% - 28px));margin:0 auto;padding:26px 0 54px}
+    .hero{border:1px solid var(--line);background:linear-gradient(145deg,rgba(16,38,60,.97),rgba(8,23,38,.96));border-radius:24px;padding:clamp(22px,4vw,40px);box-shadow:var(--shadow);position:relative;overflow:hidden}
+    .hero:after{content:"";position:absolute;width:18rem;height:18rem;border-radius:50%;right:-6rem;bottom:-10rem;background:rgba(36,214,199,.08);pointer-events:none}
+    .eyebrow{color:var(--accent2);text-transform:uppercase;letter-spacing:.12em;font-size:.78rem;font-weight:800}
+    h1{margin:7px 0 9px;font-size:clamp(2rem,5vw,3.45rem);line-height:1.05} h2{margin:0} .hero p{margin:0;max-width:860px;color:var(--muted)}
+    .meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:22px}.meta-card{border:1px solid var(--line);border-radius:14px;background:rgba(3,14,25,.52);padding:12px 14px}.meta-card small{display:block;color:var(--muted)}.meta-card strong{display:block;margin-top:3px}
+    .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.btn{min-height:44px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:#10243a;color:var(--text);font-weight:760}.btn:hover{border-color:#4d7898}.btn-primary{background:linear-gradient(135deg,var(--accent),#0284c7);border-color:transparent;color:#00151f}.btn-secondary{background:#10283a}.btn-violet{background:#221b3c;border-color:#51437c}
+    .statusbar{margin:17px 0 25px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.progress{height:10px;border-radius:999px;border:1px solid #24435d;background:#0c1c2e;overflow:hidden}.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}.counter{color:var(--muted);font-weight:750;white-space:nowrap}
+    .dossier{border:1px solid #315875;border-radius:20px;background:linear-gradient(145deg,rgba(12,32,50,.96),rgba(8,24,39,.96));padding:20px;box-shadow:0 8px 28px rgba(0,0,0,.2)}
+    .dossier-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.dossier h2{font-size:1.4rem}.dossier p{color:var(--muted);margin:5px 0 0}.scenario-badge{border:1px solid #426985;border-radius:999px;padding:5px 9px;color:var(--accent2);font-size:.8rem;font-weight:800;white-space:nowrap}
+    .facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:14px}.fact{border:1px solid var(--line);border-radius:12px;background:#091827;padding:10px}.fact small{color:var(--muted);display:block}.fact strong{display:block;margin-top:2px;overflow-wrap:anywhere}.requirements{margin:14px 0 0;padding-left:20px}.requirements li{margin:5px 0;color:#d6e8f6}.requirements strong{color:#fff}
+    .topology{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:center;margin-top:17px}.node{border:1px solid #355b76;border-radius:13px;background:#0a1a2a;padding:12px;text-align:center;min-width:0}.node strong{display:block}.node small{color:var(--muted)}.arrow{color:var(--accent);font-weight:900;font-size:1.35rem}
+    .section{margin-top:29px}.section-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:13px}.section-head h2{font-size:clamp(1.35rem,3vw,1.8rem)}.section-head p{margin:4px 0 0;color:var(--muted);max-width:780px}.section-score{color:var(--accent2);font-weight:850;white-space:nowrap}
+    .card{border:1px solid var(--line);border-radius:var(--radius);background:rgba(12,27,43,.94);padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+    .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{border:1px solid rgba(41,71,97,.72);border-radius:12px;background:#091827;padding:10px}.field.correct{border-color:rgba(52,211,153,.72)}.field.incorrect{border-color:rgba(251,113,133,.82)}
+    label{display:grid;gap:6px;font-size:.91rem;font-weight:760;color:#dcecf8}.help{font-size:.78rem;color:var(--muted);font-weight:500}.field-feedback{margin-top:7px;font-size:.8rem;color:var(--muted);display:none}.field-feedback.show{display:block}.incorrect .field-feedback{color:#ffc4cf}.correct .field-feedback{color:#a9f3d5}
+    select,input[type="text"]{width:100%;min-height:44px;border:1px solid #365b77;border-radius:10px;background:#061522;color:var(--text);padding:9px 10px;outline:none}select:focus,input:focus,button:focus-visible{outline:3px solid rgba(57,198,244,.28);outline-offset:2px}
+    .device-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.device-title{display:flex;gap:10px;align-items:center}.icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:#0b3144;border:1px solid #2f6178;font-size:1.2rem}.device-title small{display:block;color:var(--muted)}
+    .study-hint{display:none;margin:0 0 13px;border-left:3px solid var(--accent);border-radius:8px;background:#082033;padding:9px 11px;color:#cfefff}.study-hint.show{display:block}
+    .validation-list{display:grid;gap:9px}.validation{border:1px solid var(--line);border-radius:11px;background:#091827;padding:10px 11px}.validation.good{border-color:rgba(52,211,153,.6)}.validation.bad{border-color:rgba(251,113,133,.7)}.validation strong{display:block}.validation small{color:var(--muted)}
+    .results{display:none;margin-top:26px;border:1px solid var(--line);border-radius:20px;padding:22px;background:linear-gradient(145deg,#10263a,#0b1a2a)}.results.show{display:block}.result-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:14px 0}.score-card{border:1px solid var(--line);border-radius:13px;background:#081827;padding:11px}.score-card small{display:block;color:var(--muted)}.score-card strong{font-size:1.45rem}.score-good{color:var(--ok)}.score-mid{color:var(--warn)}.score-low{color:var(--bad)}
+    details{border:1px solid var(--line);border-radius:12px;background:#081827;padding:11px 13px}details+details{margin-top:8px}summary{cursor:pointer;font-weight:800}.reference table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.9rem}.reference th,.reference td{text-align:left;padding:8px 7px;border-bottom:1px solid var(--line);vertical-align:top}.reference th{color:var(--accent2)}
+    .footer{text-align:center;color:var(--muted);font-size:.85rem;padding-top:32px}.hidden{display:none!important}
+    @media(max-width:920px){.facts{grid-template-columns:repeat(2,minmax(0,1fr))}.topology{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}.result-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:690px){.shell{width:min(100% - 16px,1220px);padding-top:9px}.hero,.card,.dossier{padding:15px}.meta{grid-template-columns:1fr 1fr}.field-grid{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}.result-grid{grid-template-columns:1fr 1fr}.dossier-head,.section-head{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <section class="hero">
+    <div class="eyebrow">CompTIA Security+ SY0-701 • Interactive PBQ</div>
+    <h1>WiFi Installation & AAA Configuration</h1>
+    <p>Configure an endpoint, WLAN controller, and AAA/RADIUS path from a deployment brief. The scoring engine checks individual settings and whether the components actually agree with one another.</p>
+    <div class="meta">
+      <div class="meta-card"><small>Scenario engine</small><strong id="profileLabel">Dynamic 701</strong></div>
+      <div class="meta-card"><small>Scored decisions</small><strong>33 fields</strong></div>
+      <div class="meta-card"><small>Architecture</small><strong>802.1X • EAP • RADIUS</strong></div>
+      <div class="meta-card"><small>Attempt time</small><strong id="timer">00:00</strong></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="submitBtn" type="button">Submit PBQ</button>
+      <button class="btn" id="randomBtn" type="button">Reset + New 701 Scenario</button>
+      <button class="btn btn-violet" id="legacyBtn" type="button">Load Legacy SBUX</button>
+      <button class="btn btn-secondary" id="studyBtn" type="button" aria-pressed="false">Study Mode: Off</button>
+    </div>
+  </section>
+
+  <div class="statusbar"><div class="progress"><div id="progressFill"></div></div><div class="counter"><span id="answered">0</span>/33 answered</div></div>
+
+  <section class="dossier" aria-labelledby="scenarioTitle">
+    <div class="dossier-head"><div><div class="eyebrow">Deployment Brief</div><h2 id="scenarioTitle">Scenario</h2><p id="scenarioSummary"></p></div><div class="scenario-badge" id="scenarioId">SCN-0000</div></div>
+    <div class="facts" id="facts"></div>
+    <ul class="requirements" id="requirements"></ul>
+    <div class="topology" aria-label="Wireless authentication path">
+      <div class="node"><strong>Supplicant</strong><small>Endpoint / client</small></div><div class="arrow">→</div>
+      <div class="node"><strong>Authenticator</strong><small>AP / WLAN controller</small></div><div class="arrow">→</div>
+      <div class="node"><strong>AAA</strong><small>RADIUS server</small></div><div class="arrow">→</div>
+      <div class="node"><strong>Identity</strong><small>Directory / CA / N/A</small></div>
+    </div>
+  </section>
+
+  <section class="section" id="secA"><div class="section-head"><div><h2>Section A — Interpret the Requirement</h2><p>Classify the device, credential model, and intended access policy before touching configuration.</p></div><div class="section-score" id="scoreA">—</div></div><div class="card"><div class="study-hint" data-hint="A"></div><div class="field-grid" id="fieldsA"></div></div></section>
+  <section class="section" id="secB"><div class="section-head"><div><h2>Section B — Configure the Endpoint / Supplicant</h2><p>Configure the wireless client. Keep user credentials, WLAN PSKs, certificates, and EAP methods conceptually separate.</p></div><div class="section-score" id="scoreB">—</div></div><div class="card"><div class="device-head"><div class="device-title"><div class="icon">💻</div><div><strong>Staff / Client Device</strong><small>Wireless supplicant</small></div></div><span class="scenario-badge">8 points</span></div><div class="study-hint" data-hint="B"></div><div class="field-grid" id="fieldsB"></div></div></section>
+  <section class="section" id="secC"><div class="section-head"><div><h2>Section C — Configure the WLAN Controller</h2><p>The controller is the authenticator/enforcement point. Configure both wireless access and the AAA relationship.</p></div><div class="section-score" id="scoreC">—</div></div><div class="card"><div class="device-head"><div class="device-title"><div class="icon">📡</div><div><strong>WLAN Controller / AP</strong><small>Authenticator / NAS</small></div></div><span class="scenario-badge">10 points</span></div><div class="study-hint" data-hint="C"></div><div class="field-grid" id="fieldsC"></div></div></section>
+  <section class="section" id="secD"><div class="section-head"><div><h2>Section D — Configure AAA / RADIUS</h2><p>Authorize the network access server, match the shared secret, and identify the correct authentication source and EAP expectation.</p></div><div class="section-score" id="scoreD">—</div></div><div class="card"><div class="device-head"><div class="device-title"><div class="icon">🛡️</div><div><strong>AAA / RADIUS Server</strong><small>Authentication server</small></div></div><span class="scenario-badge">7 points</span></div><div class="study-hint" data-hint="D"></div><div class="field-grid" id="fieldsD"></div></div></section>
+  <section class="section" id="secE"><div class="section-head"><div><h2>Section E — Installation & Hardening</h2><p>Apply the operational security settings that keep the wireless deployment from becoming an avoidable weak point.</p></div><div class="section-score" id="scoreE">—</div></div><div class="card"><div class="study-hint" data-hint="E"></div><div class="field-grid" id="fieldsE"></div></div></section>
+
+  <section class="section"><div class="section-head"><div><h2>Cross-Component Validation</h2><p>After submission, this checks whether your endpoint, controller, and AAA configurations form a working authentication chain.</p></div></div><div class="card"><div class="validation-list" id="validationList"><div class="validation"><strong>Waiting for submission</strong><small>Relationship checks appear here after you submit.</small></div></div></div></section>
+
+  <section class="results" id="results" aria-live="polite"><div class="eyebrow">Attempt Results</div><h2 id="headline">PBQ scored</h2><div class="result-grid"><div class="score-card"><small>Total</small><strong id="totalScore">0%</strong></div><div class="score-card"><small>Interpret</small><strong id="resA">0/3</strong></div><div class="score-card"><small>Endpoint</small><strong id="resB">0/8</strong></div><div class="score-card"><small>Controller</small><strong id="resC">0/10</strong></div><div class="score-card"><small>AAA + hardening</small><strong id="resDE">0/12</strong></div></div><p id="resultMessage"></p></section>
+
+  <section class="section reference"><div class="section-head"><div><h2>Review After the Attempt</h2><p>Open these only after retrieval practice, or use Study Mode for guided practice.</p></div></div>
+    <details><summary>Wireless role map</summary><p><strong>Supplicant</strong> = endpoint requesting access. <strong>Authenticator</strong> = AP/switch/controller controlling the port or wireless association. <strong>Authentication server</strong> = RADIUS/AAA service making or supporting the access decision. A directory or certificate authority may provide identity evidence to that AAA service.</p></details>
+    <details><summary>Personal vs Enterprise</summary><p><strong>Personal</strong> uses a WLAN secret/passphrase; WPA3-Personal uses SAE. <strong>Enterprise</strong> uses 802.1X/EAP with an authentication server such as RADIUS. Do not confuse a WLAN PSK with the RADIUS shared secret between the NAS/controller and RADIUS server.</p></details>
+    <details><summary>PEAP vs EAP-TLS</summary><p><strong>PEAP-style training scenario:</strong> individual username/password credentials protected inside a tunneled EAP exchange. <strong>EAP-TLS:</strong> certificate-based mutual authentication and a strong fit for centrally managed endpoints with a PKI.</p></details>
+    <details><summary>2.4-GHz channel clue</summary><p>For the simplified North American 20-MHz 2.4-GHz exam model, channels <strong>1, 6, and 11</strong> are the familiar non-overlapping choices. This rule is not a universal channel plan for 5-GHz or 6-GHz networks.</p></details>
+  </section>
+  <div class="footer">Independent Security+ SY0-701 practice simulation. Not affiliated with or endorsed by CompTIA, Starbucks, Cisco, or Juniper.</div>
+</main>
+<script>
+  const OPTIONS = {
+    role:['','BYOD Employee','Managed Corporate Laptop','Guest Device','Legacy IoT Device'],
+    credential:['','Username + password','Client certificate','WLAN PSK'],
+    access:['','Employee/BYOD restricted','Corporate production','Guest internet-only','IoT isolated'],
+    security:['','WPA2-Enterprise','WPA3-Enterprise','WPA3-Personal','WPA2-Personal'],
+    eap:['','PEAP (username/password)','EAP-TLS','SAE (WPA3-Personal)','Not used (PSK)'],
+    cert:['','Required','Not required','Not used'],
+    enabled:['','Enabled','Disabled'],
+    aaa:['','RADIUS','Not used'],
+    identity:['','Active Directory / LDAP','Certificate authority + directory','Not used'],
+    accounting:['','Enabled','Not used'],
+    band:['','5 GHz','2.4 GHz'],
+    channel:['','Auto-managed','1','6','11'],
+    wps:['','Disabled','Enabled'],
+    mgmt:['','Dedicated management network','Same network as wireless clients'],
+    logging:['','Enabled','Disabled'],
+    segment:['','Restricted employee/BYOD VLAN','Corporate VLAN','Guest internet-only VLAN','Isolated IoT VLAN'],
+    fallback:['','Do not downgrade the staff WLAN','Keep guests off employee network','Isolate legacy device; do not weaken staff WLAN','No downgrade required']
+  };
+
+  const FIELD_DEFS = {
+    A:[
+      {id:'role',label:'Device / user classification',type:'select',options:'role'},
+      {id:'credential',label:'Credential model',type:'select',options:'credential'},
+      {id:'access',label:'Required access policy',type:'select',options:'access'}
+    ],
+    B:[
+      {id:'epSsid',label:'SSID',type:'text'},
+      {id:'epSecurity',label:'Wireless security mode',type:'select',options:'security'},
+      {id:'epEap',label:'Authentication / EAP method',type:'select',options:'eap'},
+      {id:'username',label:'Username',type:'text',help:'Enter N/A if the scenario does not use a user account.'},
+      {id:'userPass',label:'User password',type:'text',help:'This is not the WLAN PSK or RADIUS shared secret.'},
+      {id:'epPsk',label:'WLAN PSK / passphrase',type:'text',help:'Enter N/A for Enterprise authentication.'},
+      {id:'clientCert',label:'Client certificate',type:'select',options:'cert'},
+      {id:'realm',label:'Domain / identity realm',type:'text'}
+    ],
+    C:[
+      {id:'ctrlSsid',label:'WLAN SSID',type:'text'},
+      {id:'ctrlSecurity',label:'WLAN security mode',type:'select',options:'security'},
+      {id:'dot1x',label:'802.1X',type:'select',options:'enabled'},
+      {id:'radiusIp',label:'RADIUS server address',type:'text'},
+      {id:'radiusSecret',label:'RADIUS shared secret',type:'text',help:'Secret shared between controller/NAS and RADIUS server.'},
+      {id:'ctrlPsk',label:'WLAN PSK / passphrase',type:'text',help:'Separate from the RADIUS shared secret.'},
+      {id:'nasIp',label:'Controller / NAS address',type:'text'},
+      {id:'vlan',label:'Assigned network / VLAN',type:'text'},
+      {id:'band',label:'Wireless band',type:'select',options:'band'},
+      {id:'channel',label:'Channel selection',type:'select',options:'channel'}
+    ],
+    D:[
+      {id:'aaaService',label:'AAA service',type:'select',options:'aaa'},
+      {id:'aaaNasIp',label:'Authorized RADIUS client / NAS address',type:'text'},
+      {id:'aaaIp',label:'AAA server address',type:'text'},
+      {id:'aaaSecret',label:'AAA shared secret',type:'text'},
+      {id:'identitySource',label:'Identity source',type:'select',options:'identity'},
+      {id:'aaaEap',label:'Expected EAP / auth method',type:'select',options:'eap'},
+      {id:'accounting',label:'AAA accounting',type:'select',options:'accounting'}
+    ],
+    E:[
+      {id:'wps',label:'WPS',type:'select',options:'wps'},
+      {id:'mgmt',label:'Controller management access',type:'select',options:'mgmt'},
+      {id:'logging',label:'Wireless / AAA logging',type:'select',options:'logging'},
+      {id:'segment',label:'Segmentation outcome',type:'select',options:'segment'},
+      {id:'fallback',label:'Security fallback decision',type:'select',options:'fallback'}
+    ]
+  };
+
+  const names=[['morgan.lee','Morgan'],['jordan.kim','Jordan'],['alex.rivera','Alex'],['casey.wright','Casey']];
+  const domains=['NORTHSTAR','BLUEFALCON','HORIZON','ORBITAL'];
+  const secrets=['N4v!RADIUS#7q2P','T9x!AAA#4mK8v','R8d!Link#52Qp','A7z!Radius#91Lm'];
+  const pskList=['GuestWave!731','IoT-Isolate!42','VisitorNet!905','SensorOnly!611'];
+  const rand=(arr)=>arr[Math.floor(Math.random()*arr.length)];
+  const n=(min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+  const scenarioCode=()=>`SCN-${n(1000,9999)}`;
+  const N_A='N/A';
+
+  function common(profile){
+    const subnet=n(20,180), controller=`10.0.${subnet}.51`, radius=`10.0.${subnet}.13`, domain=rand(domains), person=rand(names), secret=rand(secrets);
+    return {profile,subnet,controller,radius,domain,person,secret,code:scenarioCode()};
+  }
+
+  function buildScenario(kind){
+    if(kind==='legacy'){
+      const s={profile:'Legacy SBUX Reconstruction',code:'SBUX-601→701',controller:'10.0.100.51',radius:'10.0.100.13',domain:'SBUX',person:['employee.training','Employee'],secret:'PV6JYNYQ2X'};
+      return finalize(s,{title:'Legacy SBUX BYOD — corrected architecture',summary:'Reconstruct the familiar 601 Starbucks workflow, but apply internally consistent enterprise-wireless logic. The brief states that this legacy BYOD environment supports WPA2-Enterprise, not WPA3-Enterprise.',ssid:'SBUX-BYOD-WIFI',role:'BYOD Employee',credential:'Username + password',access:'Employee/BYOD restricted',security:'WPA2-Enterprise',eap:'PEAP (username/password)',username:'employee.training',userPass:'SBUX-Train!26',epPsk:N_A,clientCert:'Not required',realm:'SBUX',dot1x:'Enabled',ctrlPsk:N_A,vlan:'SBUX-BYOD VLAN 30',band:'2.4 GHz',channel:'11',aaaService:'RADIUS',identitySource:'Active Directory / LDAP',accounting:'Enabled',segment:'Restricted employee/BYOD VLAN',fallback:'Do not downgrade the staff WLAN',nearby:'Nearby 2.4-GHz APs occupy channels 1 and 6.',requirements:['Use individual employee credentials.','The BYOD client and WLAN controller support WPA2-Enterprise for this legacy deployment.','Use the provided RADIUS service and shared secret.','Keep BYOD clients on the restricted employee/BYOD network.']});
+    }
+    const s=common(kind);
+    if(kind==='byod') return finalize(s,{title:'Modern BYOD Employee',summary:'A personally owned employee device needs individual corporate authentication. No client certificate has been issued to the device, but the endpoint and WLAN infrastructure both support WPA3-Enterprise.',ssid:`${s.domain}-BYOD`,role:'BYOD Employee',credential:'Username + password',access:'Employee/BYOD restricted',security:'WPA3-Enterprise',eap:'PEAP (username/password)',username:s.person[0],userPass:`${s.person[1]}!Auth${n(20,89)}`,epPsk:N_A,clientCert:'Not required',realm:s.domain,dot1x:'Enabled',ctrlPsk:N_A,vlan:`${s.domain}-BYOD VLAN 30`,band:'5 GHz',channel:'Auto-managed',aaaService:'RADIUS',identitySource:'Active Directory / LDAP',accounting:'Enabled',segment:'Restricted employee/BYOD VLAN',fallback:'Do not downgrade the staff WLAN',nearby:'5-GHz channels are centrally managed by the WLAN controller.',requirements:['Use individual employee credentials.','WPA3-Enterprise is supported end-to-end.','No client certificate is available; use the username/password enterprise method shown in the choices.','Place BYOD clients on the restricted BYOD VLAN.']});
+    if(kind==='managed') return finalize(s,{title:'Managed Corporate Laptop',summary:'A centrally managed corporate laptop has a device certificate issued by the enterprise PKI. The organization requires certificate-based mutual authentication and WPA3-Enterprise.',ssid:`${s.domain}-CORP`,role:'Managed Corporate Laptop',credential:'Client certificate',access:'Corporate production',security:'WPA3-Enterprise',eap:'EAP-TLS',username:N_A,userPass:N_A,epPsk:N_A,clientCert:'Required',realm:s.domain,dot1x:'Enabled',ctrlPsk:N_A,vlan:`${s.domain}-CORP VLAN 20`,band:'5 GHz',channel:'Auto-managed',aaaService:'RADIUS',identitySource:'Certificate authority + directory',accounting:'Enabled',segment:'Corporate VLAN',fallback:'No downgrade required',nearby:'The 5-GHz radio plan is automatically managed.',requirements:['Use WPA3-Enterprise.','Use the installed client certificate for mutual authentication.','Authenticate through RADIUS and the enterprise PKI/directory path.','Assign the endpoint to the corporate production VLAN after successful authentication.']});
+    if(kind==='guest'){
+      const psk=rand(pskList); return finalize(s,{title:'Guest Wireless Installation',summary:'Visitors need encrypted Internet access but must not use corporate credentials or reach internal employee resources. The guest WLAN supports WPA3-Personal.',ssid:`${s.domain}-GUEST`,role:'Guest Device',credential:'WLAN PSK',access:'Guest internet-only',security:'WPA3-Personal',eap:'SAE (WPA3-Personal)',username:N_A,userPass:N_A,epPsk:psk,clientCert:'Not used',realm:N_A,dot1x:'Disabled',ctrlPsk:psk,vlan:`${s.domain}-GUEST VLAN 90`,band:'5 GHz',channel:'Auto-managed',aaaService:'Not used',identitySource:'Not used',accounting:'Not used',segment:'Guest internet-only VLAN',fallback:'Keep guests off employee network',nearby:'The guest AP uses centrally managed 5-GHz channel selection.',requirements:['Use the provided guest WLAN passphrase.','Do not send guest authentication to the corporate RADIUS service.','Keep guest traffic Internet-only and segmented from employee resources.','Disable WPS.']});
+    }
+    const psk=rand(pskList); const choices=['1','6','11']; const channel=rand(choices); const occupied=choices.filter(x=>x!==channel);
+    return finalize(s,{title:'Legacy IoT Compatibility Installation',summary:'A legacy sensor supports only 2.4-GHz WPA2-Personal and cannot perform 802.1X. The organization will not weaken the employee WLAN to accommodate it.',ssid:`${s.domain}-IOT`,role:'Legacy IoT Device',credential:'WLAN PSK',access:'IoT isolated',security:'WPA2-Personal',eap:'Not used (PSK)',username:N_A,userPass:N_A,epPsk:psk,clientCert:'Not used',realm:N_A,dot1x:'Disabled',ctrlPsk:psk,vlan:`${s.domain}-IOT VLAN 70`,band:'2.4 GHz',channel,aaaService:'Not used',identitySource:'Not used',accounting:'Not used',segment:'Isolated IoT VLAN',fallback:'Isolate legacy device; do not weaken staff WLAN',nearby:`Nearby 2.4-GHz APs occupy channels ${occupied[0]} and ${occupied[1]}.`,requirements:['The sensor cannot support WPA3 or 802.1X.','Use the provided IoT WLAN passphrase only on the isolated IoT SSID.','Choose the remaining non-overlapping 2.4-GHz channel from 1, 6, and 11.','Do not downgrade the employee WLAN for this device.']});
+  }
+
+  function finalize(s,c){
+    const enterprise=c.security.includes('Enterprise');
+    const aaaIp=enterprise?s.radius:N_A, aaaSecret=enterprise?s.secret:N_A, nas= s.controller;
+    return {...s,...c,
+      radiusIp:aaaIp,radiusSecret:aaaSecret,nasIp:nas,
+      aaaNasIp:enterprise?nas:N_A,aaaIp:enterprise?s.radius:N_A,aaaSecret:enterprise?s.secret:N_A,
+      aaaEap:enterprise?c.eap:(c.security==='WPA3-Personal'?'SAE (WPA3-Personal)':'Not used (PSK)'),
+      wps:'Disabled',mgmt:'Dedicated management network',logging:'Enabled'};
+  }
+
+  const ANSWER_MAP={
+    role:'role',credential:'credential',access:'access',epSsid:'ssid',epSecurity:'security',epEap:'eap',username:'username',userPass:'userPass',epPsk:'epPsk',clientCert:'clientCert',realm:'realm',
+    ctrlSsid:'ssid',ctrlSecurity:'security',dot1x:'dot1x',radiusIp:'radiusIp',radiusSecret:'radiusSecret',ctrlPsk:'ctrlPsk',nasIp:'nasIp',vlan:'vlan',band:'band',channel:'channel',
+    aaaService:'aaaService',aaaNasIp:'aaaNasIp',aaaIp:'aaaIp',aaaSecret:'aaaSecret',identitySource:'identitySource',aaaEap:'aaaEap',accounting:'accounting',
+    wps:'wps',mgmt:'mgmt',logging:'logging',segment:'segment',fallback:'fallback'
+  };
+
+  let scenario,study=false,started=Date.now();
+  const $=id=>document.getElementById(id);
+  const allDefs=()=>Object.values(FIELD_DEFS).flat();
+  const opt=(key)=>OPTIONS[key].map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v||'Select…')}</option>`).join('');
+  function escapeHtml(v){return String(v).replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));}
+
+  function renderField(def){
+    const control=def.type==='select'?`<select id="${def.id}" aria-label="${escapeHtml(def.label)}">${opt(def.options)}</select>`:`<input id="${def.id}" type="text" autocomplete="off" aria-label="${escapeHtml(def.label)}" />`;
+    return `<div class="field" data-field="${def.id}"><label>${escapeHtml(def.label)}${def.help?`<span class="help">${escapeHtml(def.help)}</span>`:''}${control}</label><div class="field-feedback"></div></div>`;
+  }
+  function renderFields(){Object.entries(FIELD_DEFS).forEach(([sec,defs])=>{$(`fields${sec}`).innerHTML=defs.map(renderField).join('');});document.querySelectorAll('select,input').forEach(el=>{el.addEventListener('change',updateProgress);el.addEventListener('input',updateProgress);});}
+
+  function facts(){
+    const cards=[['SSID',scenario.ssid],['Controller / NAS',scenario.controller],['RADIUS server',scenario.radiusIp],['RADIUS shared secret',scenario.radiusSecret],['WLAN passphrase',scenario.epPsk],['Identity realm',scenario.realm],['User identity',scenario.username],['User password',scenario.userPass],['Target network',scenario.vlan],['Radio clue',scenario.nearby]];
+    $('facts').innerHTML=cards.map(([k,v])=>`<div class="fact"><small>${escapeHtml(k)}</small><strong>${escapeHtml(v)}</strong></div>`).join('');
+  }
+
+  function renderScenario(){
+    $('scenarioTitle').textContent=scenario.title;$('scenarioSummary').textContent=scenario.summary;$('scenarioId').textContent=scenario.code;$('profileLabel').textContent=scenario.profile;
+    facts();$('requirements').innerHTML=scenario.requirements.map(x=>`<li>${escapeHtml(x)}</li>`).join('');
+    const hints={A:'Start with the business requirement. Is this an individual identity, a certificate-managed endpoint, or a shared WLAN secret?',B:`Endpoint signal: ${scenario.credential}. Personal WLAN secrets and enterprise user credentials are different credential types.`,C:'The controller is the authenticator/NAS. Enterprise mode sends authentication to RADIUS; Personal mode uses the WLAN passphrase instead.',D:'RADIUS must recognize the controller/NAS as a client and use the same RADIUS shared secret configured on the controller. The identity source is a separate role.',E:'Prefer WPS disabled, dedicated management access, logging enabled, and segmentation that matches the device trust level.'};
+    Object.entries(hints).forEach(([k,v])=>{const el=document.querySelector(`[data-hint="${k}"]`);el.textContent=v;el.classList.toggle('show',study);});
+  }
+
+  function clearState(){document.querySelectorAll('.field').forEach(f=>f.classList.remove('correct','incorrect'));document.querySelectorAll('.field-feedback').forEach(f=>{f.textContent='';f.classList.remove('show')});['A','B','C','D','E'].forEach(s=>$(`score${s}`).textContent='—');$('results').classList.remove('show');$('validationList').innerHTML='<div class="validation"><strong>Waiting for submission</strong><small>Relationship checks appear here after you submit.</small></div>';}
+  function load(kind){scenario=buildScenario(kind||rand(['byod','managed','guest','iot']));renderFields();renderScenario();clearState();started=Date.now();updateProgress();window.scrollTo({top:0,behavior:'smooth'});}
+
+  function normalize(v){return String(v).trim();}
+  function expected(id){return scenario[ANSWER_MAP[id]];}
+  function valueOf(id){return normalize($(id).value);}
+  function gradeField(def){
+    const got=valueOf(def.id),exp=normalize(expected(def.id)),ok=got===exp,wrap=document.querySelector(`[data-field="${def.id}"]`),fb=wrap.querySelector('.field-feedback');
+    wrap.classList.toggle('correct',ok);wrap.classList.toggle('incorrect',!ok);fb.classList.add('show');fb.textContent=ok?'Correct.':`Correct: ${exp}`;return Number(ok);
+  }
+  function gradeSection(sec){return FIELD_DEFS[sec].reduce((sum,d)=>sum+gradeField(d),0);}
+
+  function relationshipChecks(){
+    const v=id=>valueOf(id), enterprise=scenario.security.includes('Enterprise'), checks=[];
+    const add=(name,ok,msg)=>checks.push({name,ok,msg});
+    add('SSID agreement',v('epSsid')===v('ctrlSsid')&&v('epSsid')===scenario.ssid,'Endpoint and controller must reference the same intended SSID.');
+    add('Wireless security agreement',v('epSecurity')===v('ctrlSecurity')&&v('epSecurity')===scenario.security,'The supplicant and WLAN security profiles must be compatible.');
+    if(enterprise){
+      add('802.1X / RADIUS path',v('dot1x')==='Enabled'&&v('radiusIp')===v('aaaIp')&&v('aaaIp')===scenario.radius,'Enterprise wireless requires the controller to relay authentication to the intended RADIUS server.');
+      add('RADIUS shared-secret agreement',v('radiusSecret')===v('aaaSecret')&&v('radiusSecret')===scenario.secret,'The controller/NAS and RADIUS server must share the same RADIUS secret.');
+      add('Authorized NAS identity',v('nasIp')===v('aaaNasIp')&&v('nasIp')===scenario.controller,'RADIUS must recognize the controller/NAS identity as an authorized client.');
+      add('EAP agreement',v('epEap')===v('aaaEap')&&v('epEap')===scenario.eap,'The endpoint method and AAA policy must expect the same EAP method.');
+    }else{
+      add('Personal-mode credential path',v('dot1x')==='Disabled'&&v('epPsk')===v('ctrlPsk')&&v('epPsk')===scenario.epPsk,'Personal mode uses the WLAN passphrase and should not incorrectly invoke 802.1X.');
+      add('No accidental RADIUS dependency',v('aaaService')==='Not used'&&v('radiusIp')===N_A&&v('aaaIp')===N_A,'This Personal-mode scenario should not depend on corporate RADIUS authentication.');
+      add('WLAN secret agreement',v('epPsk')===v('ctrlPsk')&&v('epPsk')===scenario.epPsk,'Endpoint and controller must use the same WLAN passphrase.');
+      add('EAP/SAE scope',v('epEap')===scenario.eap&&v('aaaEap')===scenario.aaaEap,'SAE belongs to WPA3-Personal; WPA2-Personal uses a PSK without an enterprise EAP path.');
+    }
+    add('Segmentation outcome',v('vlan')===scenario.vlan&&v('segment')===scenario.segment,'Successful authentication still needs the correct network placement and access boundary.');
+    $('validationList').innerHTML=checks.map(c=>`<div class="validation ${c.ok?'good':'bad'}"><strong>${c.ok?'✓':'✕'} ${escapeHtml(c.name)}</strong><small>${escapeHtml(c.msg)}</small></div>`).join('');
+    return checks.filter(c=>c.ok).length+'/'+checks.length;
+  }
+
+  function submit(){
+    const a=gradeSection('A'),b=gradeSection('B'),c=gradeSection('C'),d=gradeSection('D'),e=gradeSection('E');const total=a+b+c+d+e,pct=Math.round(total/33*100),rel=relationshipChecks();
+    $('scoreA').textContent=`${a}/3`;$('scoreB').textContent=`${b}/8`;$('scoreC').textContent=`${c}/10`;$('scoreD').textContent=`${d}/7`;$('scoreE').textContent=`${e}/5`;
+    $('resA').textContent=`${a}/3`;$('resB').textContent=`${b}/8`;$('resC').textContent=`${c}/10`;$('resDE').textContent=`${d+e}/12`;
+    $('totalScore').textContent=`${pct}%`;$('totalScore').className=pct>=85?'score-good':pct>=70?'score-mid':'score-low';
+    $('headline').textContent=pct>=90?'Wireless authentication chain is strong':pct>=75?'Configuration is close — repair the mismatches':'Rebuild the wireless decision flow';
+    $('resultMessage').textContent=`Relationship checks passed: ${rel}. `+(pct>=90?'You are correctly separating client credentials, WLAN security, RADIUS trust, identity services, and segmentation. Reset for a different underlying scenario.':pct>=75?'Focus on the red fields and the cross-component failures. A wireless configuration can contain several individually plausible values and still fail because the components disagree.':'Work from role → security mode → authentication method → controller/AAA relationship → network placement, then retry.');
+    $('results').classList.add('show');$('results').scrollIntoView({behavior:'smooth',block:'center'});
+  }
+
+  function updateProgress(){const controls=[...document.querySelectorAll('.field select,.field input')],count=controls.filter(el=>normalize(el.value)!=='').length;$('answered').textContent=count;$('progressFill').style.width=`${Math.round(count/33*100)}%`;}
+  function tick(){const sec=Math.floor((Date.now()-started)/1000),m=String(Math.floor(sec/60)).padStart(2,'0'),s=String(sec%60).padStart(2,'0');$('timer').textContent=`${m}:${s}`;}
+
+  $('submitBtn').addEventListener('click',submit);$('randomBtn').addEventListener('click',()=>load());$('legacyBtn').addEventListener('click',()=>load('legacy'));$('studyBtn').addEventListener('click',()=>{study=!study;$('studyBtn').textContent=`Study Mode: ${study?'On':'Off'}`;$('studyBtn').setAttribute('aria-pressed',String(study));renderScenario();});
+  load();setInterval(tick,1000);tick();
+</script>
+</body>
+</html>
