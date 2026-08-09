@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Interactive CompTIA Security+ SY0-701 RAID storage resilience PBQ practice lab." />
+  <title>Security+ SY0-701 RAID Resilience PBQ</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111f;
+      --panel: #0d1b2a;
+      --panel-2: #10263d;
+      --line: #29445f;
+      --text: #edf6ff;
+      --muted: #9eb2c7;
+      --accent: #38bdf8;
+      --accent-2: #22d3ee;
+      --ok: #34d399;
+      --bad: #fb7185;
+      --warn: #fbbf24;
+      --shadow: 0 14px 40px rgba(0,0,0,.28);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% -10%, rgba(56,189,248,.16), transparent 34rem),
+        linear-gradient(180deg, #06101d 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+    a { color: var(--accent); }
+    button, select, input { font: inherit; }
+    button, select, input[type="number"] { min-height: 44px; }
+    button { cursor: pointer; }
+    .shell { width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 54px; }
+    .hero {
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(16,38,61,.96), rgba(10,24,39,.94));
+      border-radius: 24px;
+      padding: clamp(22px, 4vw, 42px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -6rem -8rem auto;
+      width: 18rem;
+      height: 18rem;
+      border-radius: 50%;
+      background: rgba(56,189,248,.08);
+      pointer-events: none;
+    }
+    .eyebrow { color: var(--accent-2); text-transform: uppercase; letter-spacing: .12em; font-size: .78rem; font-weight: 800; }
+    h1 { margin: 8px 0 10px; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.05; }
+    .hero p { max-width: 780px; color: var(--muted); margin: 0; }
+    .meta { margin-top: 24px; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+    .meta-card { background: rgba(4,14,25,.54); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; }
+    .meta-card small { color: var(--muted); display: block; }
+    .meta-card strong { display: block; margin-top: 3px; font-size: 1.05rem; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 0; }
+    .btn { border: 1px solid var(--line); border-radius: 12px; padding: 10px 15px; background: #102239; color: var(--text); font-weight: 750; }
+    .btn:hover { border-color: #4e7596; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #0284c7); color: #00131e; border-color: transparent; }
+    .btn-danger { background: #301923; border-color: #6c2e3e; }
+    .statusbar { margin: 18px 0 26px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+    .progress { height: 10px; background: #102036; border: 1px solid #243d57; border-radius: 999px; overflow: hidden; }
+    .progress > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .2s ease; }
+    .timer { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 700; }
+    .section { margin-top: 30px; }
+    .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin-bottom: 14px; }
+    .section h2 { margin: 0; font-size: clamp(1.35rem, 3vw, 1.8rem); }
+    .section-head p { margin: 4px 0 0; color: var(--muted); max-width: 760px; }
+    .section-score { color: var(--accent-2); font-weight: 800; white-space: nowrap; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: rgba(13,27,42,.92); padding: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    .card.correct { border-color: rgba(52,211,153,.72); box-shadow: inset 0 0 0 1px rgba(52,211,153,.15); }
+    .card.incorrect { border-color: rgba(251,113,133,.78); box-shadow: inset 0 0 0 1px rgba(251,113,133,.12); }
+    .card-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 14px; }
+    .tag { display: inline-flex; align-items: center; gap: 7px; color: var(--accent-2); font-weight: 800; font-size: .88rem; }
+    .tag::before { content: ""; width: 8px; height: 8px; border-radius: 999px; background: currentColor; box-shadow: 0 0 0 4px rgba(34,211,238,.08); }
+    .points { color: var(--muted); font-size: .86rem; }
+    .disk-array { display: grid; gap: 9px; margin: 8px 0 16px; }
+    .disk-array.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .disk-array.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .disk-array.cols-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .disk { border: 1px solid #365674; border-radius: 12px; background: #081522; overflow: hidden; min-width: 0; }
+    .disk-title { text-align: center; background: #122a42; color: #cfe7fa; padding: 7px 4px; font-weight: 800; font-size: .82rem; }
+    .blocks { padding: 8px; display: grid; gap: 6px; }
+    .block { min-height: 34px; border: 1px solid #33516b; border-radius: 8px; display: grid; place-items: center; background: #0f2237; font-weight: 800; }
+    .block.parity { border-style: dashed; color: var(--warn); background: #2a2213; }
+    .fields { display: grid; gap: 10px; }
+    label { display: grid; gap: 6px; color: #d6e7f5; font-weight: 700; font-size: .92rem; }
+    select, input[type="number"] { width: 100%; border: 1px solid #365674; border-radius: 10px; padding: 9px 11px; color: var(--text); background: #081522; outline: none; }
+    select:focus, input:focus, button:focus-visible { outline: 3px solid rgba(56,189,248,.32); outline-offset: 2px; }
+    .feedback { margin-top: 12px; border-left: 3px solid var(--line); padding: 9px 11px; background: #091725; border-radius: 8px; color: var(--muted); display: none; }
+    .feedback.show { display: block; }
+    .correct .feedback { border-color: var(--ok); }
+    .incorrect .feedback { border-color: var(--bad); }
+    .capacity-row, .scenario { display: grid; grid-template-columns: 1.55fr .75fr; gap: 12px; align-items: center; }
+    .capacity-row + .capacity-row, .scenario + .scenario { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(41,68,95,.55); }
+    .scenario { grid-template-columns: 1.65fr 1fr; }
+    .scenario strong { display: block; margin-bottom: 3px; }
+    .scenario p, .capacity-row p { margin: 0; color: var(--muted); }
+    .mini-feedback { grid-column: 1 / -1; margin: 0; padding: 7px 10px; border-radius: 8px; background: #091725; color: var(--muted); display: none; }
+    .mini-feedback.show { display: block; }
+    .study-callout { border: 1px solid #285b75; background: rgba(8,51,68,.35); border-radius: 14px; padding: 15px; margin-top: 14px; color: #cbeffd; }
+    .results { display: none; margin-top: 26px; border: 1px solid var(--line); border-radius: 20px; padding: 22px; background: linear-gradient(145deg, #0f2538, #0b1a2a); }
+    .results.show { display: block; }
+    .result-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin: 14px 0; }
+    .score-card { border: 1px solid var(--line); border-radius: 14px; padding: 13px; background: #091827; }
+    .score-card small { display: block; color: var(--muted); }
+    .score-card strong { font-size: 1.55rem; }
+    .score-good { color: var(--ok); }
+    .score-mid { color: var(--warn); }
+    .score-low { color: var(--bad); }
+    .reference { margin-top: 24px; }
+    details { border: 1px solid var(--line); border-radius: 12px; background: rgba(9,24,39,.74); padding: 12px 14px; }
+    details + details { margin-top: 8px; }
+    summary { cursor: pointer; font-weight: 800; color: #dff4ff; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .92rem; }
+    th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 9px 7px; vertical-align: top; }
+    th { color: var(--accent-2); }
+    .footer { text-align: center; color: var(--muted); padding-top: 34px; font-size: .88rem; }
+    .hidden { display: none !important; }
+    @media (max-width: 820px) {
+      .meta, .result-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 18px, 1180px); padding-top: 10px; }
+      .hero, .card { padding: 15px; }
+      .meta { grid-template-columns: 1fr 1fr; }
+      .capacity-row, .scenario { grid-template-columns: 1fr; }
+      .scenario select, .capacity-row input { width: 100%; }
+      .disk-array.cols-4 .disk-title { font-size: .72rem; }
+      .blocks { padding: 5px; }
+      .block { min-height: 30px; font-size: .84rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="eyebrow">CompTIA Security+ SY0-701 • Interactive PBQ</div>
+      <h1 id="page-title">RAID Storage Resilience Assessment</h1>
+      <p>Analyze storage diagrams, identify RAID mechanisms, calculate usable capacity, and choose the architecture that best matches each business requirement. Treat this like a PBQ: read the requirement before selecting the technology.</p>
+      <div class="meta">
+        <div class="meta-card"><small>Core RAID set</small><strong>0 • 1 • 5 • 6 • 10</strong></div>
+        <div class="meta-card"><small>Questions</small><strong>26 scored fields</strong></div>
+        <div class="meta-card"><small>Exam focus</small><strong>Resilience + recovery</strong></div>
+        <div class="meta-card"><small>Attempt time</small><strong id="heroTimer">00:00</strong></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" id="submitBtn" type="button">Submit PBQ</button>
+        <button class="btn" id="randomizeBtn" type="button">Reset + Randomize</button>
+        <button class="btn" id="studyBtn" type="button" aria-pressed="false">Study Mode: Off</button>
+      </div>
+    </section>
+
+    <div class="statusbar" aria-label="PBQ completion status">
+      <div class="progress" aria-hidden="true"><div id="progressFill"></div></div>
+      <div class="timer"><span id="answeredCount">0</span>/26 fields answered</div>
+    </div>
+
+    <section class="section" id="sectionA">
+      <div class="section-head">
+        <div>
+          <h2>Section A — Identify the RAID</h2>
+          <p>For each diagram, identify the RAID level, redundancy technique, and typical disk-failure tolerance.</p>
+        </div>
+        <div class="section-score" id="scoreA">—</div>
+      </div>
+      <div class="grid" id="raidGrid"></div>
+    </section>
+
+    <section class="section" id="sectionB">
+      <div class="section-head">
+        <div>
+          <h2>Section B — Capacity Calculation</h2>
+          <p>Assume all drives are equal-sized and use the simplified exam formulas shown in the review section.</p>
+        </div>
+        <div class="section-score" id="scoreB">—</div>
+      </div>
+      <div class="card" id="capacityCard"></div>
+    </section>
+
+    <section class="section" id="sectionC">
+      <div class="section-head">
+        <div>
+          <h2>Section C — Choose the Best Architecture</h2>
+          <p>Match the requirement to the best storage choice. One scenario deliberately tests the difference between fault tolerance and recovery.</p>
+        </div>
+        <div class="section-score" id="scoreC">—</div>
+      </div>
+      <div class="card" id="scenarioCard"></div>
+      <div class="study-callout hidden" id="studyCallout"><strong>Signal → requirement → technology.</strong> Performance only points toward RAID 0. Mirroring points toward RAID 1. Single-parity tolerance points toward RAID 5. Two-disk tolerance points toward RAID 6. High I/O plus redundancy points toward RAID 10. Historical recovery from ransomware/deletion points toward backups, not RAID.</div>
+    </section>
+
+    <section class="results" id="results" aria-live="polite">
+      <div class="eyebrow">Attempt Results</div>
+      <h2 id="resultHeadline">PBQ scored</h2>
+      <div class="result-grid">
+        <div class="score-card"><small>Total score</small><strong id="totalScore">0%</strong></div>
+        <div class="score-card"><small>RAID identification</small><strong id="resultA">0/15</strong></div>
+        <div class="score-card"><small>Capacity</small><strong id="resultB">0/5</strong></div>
+        <div class="score-card"><small>Architecture</small><strong id="resultC">0/6</strong></div>
+      </div>
+      <p id="resultMessage"></p>
+    </section>
+
+    <section class="section reference">
+      <div class="section-head"><div><h2>Review After the Attempt</h2><p>Use these only after retrieval practice, or switch on Study Mode for guided practice.</p></div></div>
+      <details>
+        <summary>RAID master schema</summary>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>RAID</th><th>Mechanism</th><th>Minimum disks</th><th>Typical tolerance</th><th>Usable capacity</th><th>Main signal</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>Striping</td><td>2</td><td>0</td><td>N × drive size</td><td>Speed / no redundancy</td></tr>
+              <tr><td>1</td><td>Mirroring</td><td>2</td><td>1 in a 2-disk mirror</td><td>≈ 50%</td><td>Copy / simple redundancy</td></tr>
+              <tr><td>5</td><td>Striping + distributed single parity</td><td>3</td><td>1 disk</td><td>(N − 1) × drive size</td><td>Capacity + one failure</td></tr>
+              <tr><td>6</td><td>Striping + distributed dual parity</td><td>4</td><td>2 disks</td><td>(N − 2) × drive size</td><td>Two failures</td></tr>
+              <tr><td>10</td><td>Striping across mirrored pairs</td><td>4</td><td>At least 1; more may survive if not in same pair</td><td>≈ 50%</td><td>High I/O + redundancy</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <details>
+        <summary>Memory anchors</summary>
+        <p><strong>0 = SPEED</strong> • <strong>1 = COPY</strong> • <strong>5 = ONE PARITY</strong> • <strong>6 = TWO PARITY</strong> • <strong>10 = SPEED + COPY</strong></p>
+      </details>
+      <details>
+        <summary>Critical exam trap: RAID is not backup</summary>
+        <p>RAID primarily supports availability and fault tolerance against drive failure. Backups preserve recoverable historical copies. RAID alone does not protect you from ransomware encryption, accidental deletion, application corruption, catastrophic chassis loss, or every site-level event.</p>
+      </details>
+    </section>
+
+    <div class="footer">Built as a Security+ SY0-701 study simulation. This is an independent practice lab and is not affiliated with or endorsed by CompTIA.</div>
+  </main>
+
+  <script>
+    const raidItems = [
+      {
+        id: 'r0', raid: 'RAID 0', technique: 'Striping', tolerance: '0 disk failures',
+        disks: [['A','C','E'], ['B','D','F']],
+        explanation: 'Different blocks are striped across disks with no mirror and no parity. Any disk failure breaks the array.'
+      },
+      {
+        id: 'r1', raid: 'RAID 1', technique: 'Mirroring', tolerance: '1 disk failure',
+        disks: [['A','B','C'], ['A','B','C']],
+        explanation: 'Every block is duplicated on the mirror. In a basic two-disk mirror, one disk may fail while the other remains.'
+      },
+      {
+        id: 'r5', raid: 'RAID 5', technique: 'Striping + single parity', tolerance: '1 disk failure',
+        disks: [['A','C','P3'], ['B','P2','E'], ['P1','D','F']],
+        parity: ['P1','P2','P3'],
+        explanation: 'Data is striped while a single parity block rotates across the disks. RAID 5 tolerates one disk failure.'
+      },
+      {
+        id: 'r6', raid: 'RAID 6', technique: 'Striping + dual parity', tolerance: '2 disk failures',
+        disks: [['A','C','P3','Q4'], ['B','P2','Q3','G'], ['P1','Q2','E','H'], ['Q1','D','F','P4']],
+        parity: ['P1','P2','P3','P4','Q1','Q2','Q3','Q4'],
+        explanation: 'Each stripe has two independent parity values (P and Q). Dual parity is the key signal for RAID 6 and two-disk fault tolerance.'
+      },
+      {
+        id: 'r10', raid: 'RAID 10', technique: 'Striping across mirrors', tolerance: 'At least 1 disk failure',
+        disks: [['A','C','E'], ['A','C','E'], ['B','D','F'], ['B','D','F']],
+        explanation: 'Disk 1 mirrors Disk 2, and Disk 3 mirrors Disk 4, while data is striped across the mirror pairs. This combines performance and redundancy.'
+      }
+    ];
+
+    const capacities = [
+      { id: 'c0', label: 'Array A', text: '4 × 4-TB disks configured as RAID 0', answer: 16, explanation: 'RAID 0 uses all four drives: 4 × 4 TB = 16 TB.' },
+      { id: 'c1', label: 'Array B', text: '2 × 4-TB disks configured as RAID 1', answer: 4, explanation: 'A two-disk mirror has the usable capacity of one drive: 4 TB.' },
+      { id: 'c5', label: 'Array C', text: '4 × 4-TB disks configured as RAID 5', answer: 12, explanation: '(N − 1) × size = (4 − 1) × 4 TB = 12 TB.' },
+      { id: 'c6', label: 'Array D', text: '4 × 4-TB disks configured as RAID 6', answer: 8, explanation: '(N − 2) × size = (4 − 2) × 4 TB = 8 TB.' },
+      { id: 'c10', label: 'Array E', text: '4 × 4-TB disks configured as RAID 10', answer: 8, explanation: 'RAID 10 uses roughly 50% of raw capacity for mirrored copies: 16 TB raw → 8 TB usable.' }
+    ];
+
+    const scenarios = [
+      { id: 's0', title: 'Scenario 1 — Disposable performance workload', text: 'A temporary video-processing workstation requires the highest storage performance. All source data exists elsewhere and can be regenerated. Disk-failure protection is unnecessary.', answer: 'RAID 0', explanation: 'The signal is performance with no redundancy requirement, so RAID 0 is the best fit.' },
+      { id: 's1', title: 'Scenario 2 — Simple two-drive redundancy', text: 'A small critical file server has exactly two equal drives and needs a straightforward duplicate copy so one drive can fail without immediate downtime.', answer: 'RAID 1', explanation: 'Two drives + identical copy + one-drive survival maps directly to RAID 1 mirroring.' },
+      { id: 's5', title: 'Scenario 3 — Capacity with one-drive tolerance', text: 'A storage server has five equal drives. The administrator wants strong usable capacity while still tolerating any single drive failure.', answer: 'RAID 5', explanation: 'Capacity efficiency plus one-disk fault tolerance points to RAID 5.' },
+      { id: 's6', title: 'Scenario 4 — Two simultaneous drive failures', text: 'A six-drive archive array must remain available even if any two drives fail during the same incident. Write performance is secondary to resiliency.', answer: 'RAID 6', explanation: 'The decisive signal is survival of two simultaneous drive failures: RAID 6 uses dual parity.' },
+      { id: 's10', title: 'Scenario 5 — High I/O and redundancy', text: 'A transactional database needs strong read/write performance and storage redundancy. The organization accepts the 50% capacity cost of mirrored pairs.', answer: 'RAID 10', explanation: 'High I/O plus mirroring/redundancy is the classic RAID 10 requirement.' },
+      { id: 'sb', title: 'Scenario 6 — Recover from ransomware', text: 'The organization must restore files to a known-good version from before a ransomware event encrypted the production storage array.', answer: 'Backups', explanation: 'RAID protects availability from disk failure; it does not provide historical recovery. A protected backup is required.' }
+    ];
+
+    const raidOptions = ['', 'RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10'];
+    const techniqueOptions = ['', 'Striping', 'Mirroring', 'Striping + single parity', 'Striping + dual parity', 'Striping across mirrors'];
+    const toleranceOptions = ['', '0 disk failures', '1 disk failure', '2 disk failures', 'At least 1 disk failure'];
+    const architectureOptions = ['', 'RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'Backups'];
+
+    let studyMode = false;
+    let startedAt = Date.now();
+    let timerId;
+
+    const $ = (id) => document.getElementById(id);
+    const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+    const optionMarkup = (items) => items.map(v => `<option value="${v}">${v || 'Select…'}</option>`).join('');
+
+    function renderRaidCards() {
+      const grid = $('raidGrid');
+      grid.innerHTML = '';
+      shuffle(raidItems).forEach((item, index) => {
+        const cols = item.disks.length;
+        const card = document.createElement('article');
+        card.className = 'card raid-card';
+        card.dataset.id = item.id;
+        const disksHtml = item.disks.map((disk, dIndex) => {
+          const blocks = disk.map(block => `<div class="block ${(item.parity || []).includes(block) ? 'parity' : ''}">${block}</div>`).join('');
+          return `<div class="disk"><div class="disk-title">Disk ${dIndex + 1}</div><div class="blocks">${blocks}</div></div>`;
+        }).join('');
+        card.innerHTML = `
+          <div class="card-top"><div class="tag">Diagram ${index + 1}</div><div class="points">3 points</div></div>
+          <div class="disk-array cols-${cols}">${disksHtml}</div>
+          <div class="fields">
+            <label>RAID level<select data-kind="raid" aria-label="RAID level for diagram ${index + 1}">${optionMarkup(raidOptions)}</select></label>
+            <label>Technique<select data-kind="technique" aria-label="Technique for diagram ${index + 1}">${optionMarkup(techniqueOptions)}</select></label>
+            <label>Typical fault tolerance<select data-kind="tolerance" aria-label="Fault tolerance for diagram ${index + 1}">${optionMarkup(toleranceOptions)}</select></label>
+          </div>
+          <div class="feedback" data-feedback></div>`;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderCapacity() {
+      const card = $('capacityCard');
+      card.innerHTML = capacities.map(item => `
+        <div class="capacity-row" data-id="${item.id}">
+          <div><strong>${item.label}</strong><p>${item.text}</p></div>
+          <label>Usable TB<input type="number" min="0" step="1" inputmode="numeric" aria-label="Usable capacity in TB for ${item.label}"></label>
+          <div class="mini-feedback" data-feedback></div>
+        </div>`).join('');
+    }
+
+    function renderScenarios() {
+      const card = $('scenarioCard');
+      card.innerHTML = shuffle(scenarios).map(item => `
+        <div class="scenario" data-id="${item.id}">
+          <div><strong>${item.title}</strong><p>${item.text}</p></div>
+          <label>Best choice<select aria-label="Best architecture for ${item.title}">${optionMarkup(architectureOptions)}</select></label>
+          <div class="mini-feedback" data-feedback></div>
+        </div>`).join('');
+    }
+
+    function clearScores() {
+      document.querySelectorAll('.correct,.incorrect').forEach(el => el.classList.remove('correct','incorrect'));
+      document.querySelectorAll('[data-feedback]').forEach(el => { el.classList.remove('show'); el.textContent = ''; });
+      ['scoreA','scoreB','scoreC'].forEach(id => $(id).textContent = '—');
+      $('results').classList.remove('show');
+    }
+
+    function answerCount() {
+      const selects = [...document.querySelectorAll('select')];
+      const nums = [...document.querySelectorAll('input[type="number"]')];
+      const count = selects.filter(s => s.value).length + nums.filter(n => n.value !== '').length;
+      $('answeredCount').textContent = count;
+      $('progressFill').style.width = `${Math.round((count / 26) * 100)}%`;
+    }
+
+    function gradeRaid() {
+      let score = 0;
+      document.querySelectorAll('.raid-card').forEach(card => {
+        const item = raidItems.find(r => r.id === card.dataset.id);
+        const raid = card.querySelector('[data-kind="raid"]').value;
+        const technique = card.querySelector('[data-kind="technique"]').value;
+        const tolerance = card.querySelector('[data-kind="tolerance"]').value;
+        const earned = Number(raid === item.raid) + Number(technique === item.technique) + Number(tolerance === item.tolerance);
+        score += earned;
+        card.classList.toggle('correct', earned === 3);
+        card.classList.toggle('incorrect', earned !== 3);
+        const f = card.querySelector('[data-feedback]');
+        f.innerHTML = `<strong>${earned}/3.</strong> Correct: ${item.raid} • ${item.technique} • ${item.tolerance}. ${item.explanation}`;
+        f.classList.add('show');
+      });
+      return score;
+    }
+
+    function gradeCapacity() {
+      let score = 0;
+      document.querySelectorAll('.capacity-row').forEach(row => {
+        const item = capacities.find(c => c.id === row.dataset.id);
+        const value = Number(row.querySelector('input').value);
+        const isCorrect = row.querySelector('input').value !== '' && value === item.answer;
+        score += Number(isCorrect);
+        row.classList.toggle('correct', isCorrect);
+        row.classList.toggle('incorrect', !isCorrect);
+        const f = row.querySelector('[data-feedback]');
+        f.textContent = `${isCorrect ? 'Correct.' : 'Correct answer: ' + item.answer + ' TB.'} ${item.explanation}`;
+        f.classList.add('show');
+      });
+      return score;
+    }
+
+    function gradeScenarios() {
+      let score = 0;
+      document.querySelectorAll('.scenario').forEach(row => {
+        const item = scenarios.find(s => s.id === row.dataset.id);
+        const value = row.querySelector('select').value;
+        const isCorrect = value === item.answer;
+        score += Number(isCorrect);
+        row.classList.toggle('correct', isCorrect);
+        row.classList.toggle('incorrect', !isCorrect);
+        const f = row.querySelector('[data-feedback]');
+        f.textContent = `${isCorrect ? 'Correct.' : 'Correct answer: ' + item.answer + '.'} ${item.explanation}`;
+        f.classList.add('show');
+      });
+      return score;
+    }
+
+    function scoreClass(pct) {
+      return pct >= 85 ? 'score-good' : pct >= 70 ? 'score-mid' : 'score-low';
+    }
+
+    function submitPBQ() {
+      const a = gradeRaid();
+      const b = gradeCapacity();
+      const c = gradeScenarios();
+      const total = a + b + c;
+      const pct = Math.round((total / 26) * 100);
+      $('scoreA').textContent = `${a}/15`;
+      $('scoreB').textContent = `${b}/5`;
+      $('scoreC').textContent = `${c}/6`;
+      $('resultA').textContent = `${a}/15`;
+      $('resultB').textContent = `${b}/5`;
+      $('resultC').textContent = `${c}/6`;
+      $('totalScore').textContent = `${pct}%`;
+      $('totalScore').className = scoreClass(pct);
+      $('resultHeadline').textContent = pct >= 85 ? 'Strong RAID schema' : pct >= 70 ? 'Close — repair the weak signals' : 'Rebuild the RAID decision flow';
+      $('resultMessage').textContent = pct >= 85
+        ? 'You are consistently linking diagrams and requirements to the correct resilience mechanism. Review any red items, then reset and randomize for another retrieval pass.'
+        : pct >= 70
+          ? 'Your foundation is usable, but one or two RAID signals are still competing. Focus on parity count, mirror patterns, and the requirement wording before another attempt.'
+          : 'Return to the master schema and reduce each choice to its signal: speed, copy, one parity, two parity, or speed + copy. Then retry without looking at the reference.';
+      $('results').classList.add('show');
+      $('results').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function resetPBQ() {
+      clearScores();
+      renderRaidCards();
+      renderCapacity();
+      renderScenarios();
+      document.querySelectorAll('select,input').forEach(el => {
+        el.addEventListener('change', answerCount);
+        el.addEventListener('input', answerCount);
+      });
+      startedAt = Date.now();
+      answerCount();
+      applyStudyMode();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function applyStudyMode() {
+      $('studyCallout').classList.toggle('hidden', !studyMode);
+      $('studyBtn').textContent = `Study Mode: ${studyMode ? 'On' : 'Off'}`;
+      $('studyBtn').setAttribute('aria-pressed', String(studyMode));
+      if (!studyMode) return;
+      document.querySelectorAll('.raid-card').forEach(card => {
+        const item = raidItems.find(r => r.id === card.dataset.id);
+        const f = card.querySelector('[data-feedback]');
+        f.textContent = `Hint: ${item.explanation}`;
+        f.classList.add('show');
+      });
+      document.querySelectorAll('.capacity-row').forEach(row => {
+        const item = capacities.find(c => c.id === row.dataset.id);
+        const f = row.querySelector('[data-feedback]');
+        f.textContent = `Hint: ${item.explanation}`;
+        f.classList.add('show');
+      });
+    }
+
+    function tick() {
+      const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+      const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const secs = String(elapsed % 60).padStart(2, '0');
+      $('heroTimer').textContent = `${mins}:${secs}`;
+    }
+
+    $('submitBtn').addEventListener('click', submitPBQ);
+    $('randomizeBtn').addEventListener('click', resetPBQ);
+    $('studyBtn').addEventListener('click', () => {
+      studyMode = !studyMode;
+      clearScores();
+      document.querySelectorAll('[data-feedback]').forEach(el => { el.classList.remove('show'); el.textContent = ''; });
+      applyStudyMode();
+    });
+
+    resetPBQ();
+    timerId = setInterval(tick, 1000);
+    tick();
+  </script>
+</body>
+</html>
