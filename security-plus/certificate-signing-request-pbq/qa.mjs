@@ -9,7 +9,7 @@ new vm.Script(scripts[0], { filename: 'csr-pbq-inline.js' });
 const required = [
   'Certificate Signing Request &amp; PKI',
   'data-mode="training"','data-mode="practice"','data-mode="exam"','data-mode="review"',
-  'id="screen-csr"','id="screen-flow"','id="screen-inspect"','id="screen-trouble"',
+  'id="resetBtn"','id="screen-csr"','id="screen-flow"','id="screen-inspect"','id="screen-trouble"',
   "country:'US'", "san1:'api.intellectualpoint.com'", "san2:'*.intellectualpoint.com'", "eku:'serverAuth'",
   'Private key rule','Never sent to CA','SAN = names','EKU = purpose',
   'IP Root CA → IP Intermediate CA → api.intellectualpoint.com',
@@ -19,7 +19,8 @@ const required = [
   "id:'hostname'", "id:'expired'", "id:'revoked'", "id:'intermediate'", "id:'eku'", "id:'untrusted'",
   'Revoke/replace with new key pair and new certificate',
   'Trusted Root CA',
-  '*.intellectualpoint.com cover dev.api.intellectualpoint.com?'
+  '*.intellectualpoint.com cover dev.api.intellectualpoint.com?',
+  '.mode-practice .training-only,.mode-exam .training-only{display:none}'
 ];
 for (const marker of required) if (!html.includes(marker)) throw new Error(`Missing required marker: ${marker}`);
 
@@ -28,9 +29,10 @@ const forbidden = [
   'Country (C): USA',
   'self-signed = trusted',
   'private key is sent to the CA',
-  'policyIdentifier → OCSP'
+  'policyIdentifier → OCSP',
+  'training-only" style="display:block'
 ];
-for (const marker of forbidden) if (html.toLowerCase().includes(marker.toLowerCase())) throw new Error(`Forbidden training statement present: ${marker}`);
+for (const marker of forbidden) if (html.toLowerCase().includes(marker.toLowerCase())) throw new Error(`Forbidden training statement or mode leak present: ${marker}`);
 
 function wildcardMatches(pattern, host){
   if (!pattern.startsWith('*.')) return pattern === host;
@@ -55,4 +57,4 @@ const notBefore = new Date('2026-08-01T00:00:00Z');
 const notAfter = new Date('2027-08-01T00:00:00Z');
 if (!(notBefore <= now && now <= notAfter)) throw new Error('Training certificate date window is not current');
 
-console.log('CSR / PKI PBQ QA passed: syntax, mode separation, SAN/EKU/US-country rules, current certificate dates, trust-chain semantics, AIA vs policy separation, six incident variants, wildcard behavior, compromise remediation, and scoring weights.');
+console.log('CSR / PKI PBQ QA passed: syntax, mode separation, reset behavior, SAN/EKU/US-country rules, current certificate dates, trust-chain semantics, AIA vs policy separation, six incident variants, wildcard behavior, compromise remediation, and scoring weights.');
