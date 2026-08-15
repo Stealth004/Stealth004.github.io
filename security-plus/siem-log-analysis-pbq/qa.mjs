@@ -107,6 +107,18 @@ for (const scenario of SCENARIOS) {
   assert.ok(pollutedResult.metrics.timeline < 15, `${scenario.id}: extra timeline noise must reduce timeline score`);
   assert.equal(pollutedResult.relationships.find(r => r.id === "chronology").pass, false, `${scenario.id}: extra timeline noise must fail chronology relationship`);
 
+  // Relevant corroborating evidence omitted from the condensed key timeline is allowed.
+  const extraRelevantId = scenario.answers.evidenceIds.find(id => !scenario.answers.timelineIds.includes(id));
+  if (extraRelevantId) {
+    const relevantTimeline = canonicalAttempt(scenario.id);
+    const relevantIds = [...scenario.answers.timelineIds, extraRelevantId];
+    const byTime = new Map(scenario.events.map(e => [e.id, new Date(e.timestamp).getTime()]));
+    relevantTimeline.timelineIds = relevantIds.sort((a,b) => byTime.get(a) - byTime.get(b));
+    const relevantResult = scoreAttempt(scenario.id, relevantTimeline, "advanced");
+    assert.equal(relevantResult.metrics.timeline, 15, `${scenario.id}: valid corroborating evidence should not be scored as timeline noise`);
+    assert.equal(relevantResult.relationships.find(r => r.id === "chronology").pass, true, `${scenario.id}: valid corroborating evidence should preserve chronology integrity`);
+  }
+
   const rels = evaluateRelationships(scenario.id, canonical);
   assert.equal(new Set(rels.map(r => r.id)).size, 10, `${scenario.id}: duplicate relationship IDs`);
 
@@ -122,6 +134,28 @@ for (const scenario of SCENARIOS) {
   scopeBad.scope[confirmedEntity] = "clean";
   const scopeBadResult = scoreAttempt(scenario.id, scopeBad);
   assert.equal(scopeBadResult.criticalFailure, true, `${scenario.id}: confirmed->clean should trip critical gate`);
+  assert.equal(scopeBadResult.secure, false, `${scenario.id}: critical under-scoping cannot be rated secure`);
+
+  // Over-scoping a canonically clean entity must fail scope consistency and block a secure/excellent rating.
+  const cleanEntity = Object.entries(scenario.answers.scope).find(([,v]) => v === "clean")?.[0];
+  if (cleanEntity) {
+    const scopeOver = canonicalAttempt(scenario.id);
+    scopeOver.scope[cleanEntity] = "confirmed";
+    const scopeOverResult = scoreAttempt(scenario.id, scopeOver);
+    assert.equal(scopeOverResult.relationships.find(r => r.id === "scope").pass, false, `${scenario.id}: clean->confirmed must fail scope relationship`);
+    assert.equal(scopeOverResult.secure, false, `${scenario.id}: over-scoping cannot be rated secure`);
+    assert.notEqual(scopeOverResult.rating, "Excellent investigation", `${scenario.id}: over-scoping cannot be rated excellent`);
+  }
+
+  // A wrong first containment action is a core relationship failure even when raw points remain above 80.
+  const wrongContainment = scenario.options.containment.find(x => x.value !== scenario.answers.containment && !x.critical);
+  assert.ok(wrongContainment, `${scenario.id}: noncritical containment distractor required`);
+  const containmentBad = canonicalAttempt(scenario.id);
+  containmentBad.containment = wrongContainment.value;
+  const containmentBadResult = scoreAttempt(scenario.id, containmentBad);
+  assert.equal(containmentBadResult.relationships.find(r => r.id === "containment").pass, false);
+  assert.equal(containmentBadResult.secure, false, `${scenario.id}: wrong containment cannot be rated secure`);
+  assert.notEqual(containmentBadResult.rating, "Excellent investigation", `${scenario.id}: wrong containment cannot be rated excellent`);
 
   const noiseIds = getEvents(scenario.id, "advanced").filter(e => e.noise).slice(0, 5).map(e => e.id);
   const noiseAttempt = canonicalAttempt(scenario.id);
@@ -136,5 +170,5 @@ console.log(
   `SIEM Log Analysis PBQ QA passed: ${SCENARIOS.length} scenarios, ` +
   `22/32 deterministic Standard/Advanced events, 3+ source corroboration, ` +
   `canonical 100/100, 10/10 relationships, chronology traps, raw/normalized log contracts, ` +
-  `critical containment/scope gates, minimal-timeline precision, scenario-relative noise, difficulty-reset hygiene, and alert-trigger timing.`
+  `critical containment/scope gates, timeline noise precision with valid-evidence tolerance, scenario-relative noise, difficulty-reset hygiene, alert-trigger timing, full scope consistency, and core containment rating gates.`
 );
