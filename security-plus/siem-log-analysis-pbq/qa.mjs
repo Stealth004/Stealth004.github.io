@@ -17,26 +17,38 @@ assert.equal(SCENARIOS.length, 4, "v1 must ship four scenario families");
 assert.deepEqual(SCENARIOS.map(s => s.id), ["credential","malware","web","exfil"]);
 
 const html = readFileSync(new URL("./index.html", import.meta.url), "utf8");
+const app = readFileSync(new URL("./app.mjs", import.meta.url), "utf8");
+const uiSource = `${html}\n${app}`;
 for (const marker of [
   'id="sourceTabs"','id="filterInput"','id="sortBtn"','id="evidenceList"',
   'id="timelineList"','id="scopeList"','id="attackType"','id="successState"',
   'id="initialEntity"','id="indicator"','id="containmentOptions"','id="results"',
   'id="relationshipList"','id="rawDialog"','Study Mode: Off','type="module"',
   'from "./model.mjs"','prefers-reduced-motion'
-]) assert.ok(html.includes(marker), `UI contract missing ${marker}`);
+]) assert.ok(uiSource.includes(marker), `UI contract missing ${marker}`);
 
-assert.ok(html.includes('Sort: Display Order'), "Exam workspace must begin in display-order mode");
-assert.ok(html.includes('state.submitted?'), "Post-submit evidence highlighting must be gated by submission");
-assert.ok(html.includes('ONE LOG = clue'), "Memory aid must be present in post-submit review");
+assert.ok(uiSource.includes('Sort: Display Order'), "Exam workspace must begin in display-order mode");
+assert.ok(uiSource.includes('state.submitted?'), "Post-submit evidence highlighting must be gated by submission");
+assert.ok(uiSource.includes('ONE LOG = clue'), "Memory aid must be present in post-submit review");
+
+// Responsive-layout regression contract: keep the investigation table from colliding with the right-side task stack.
+for (const marker of [
+  '.shell{width:min(1720px,calc(100% - 28px))',
+  '.panel,.case,.results{overflow:hidden}',
+  '.layout>*{min-width:0}',
+  '.table-scroll{overflow:auto;max-width:100%',
+  '@media(max-width:1540px){.layout{grid-template-columns:1fr}}'
+]) assert.ok(html.includes(marker), `layout hotfix contract missing ${marker}`);
 
 // Difficulty changes must clear every answer-bearing state field, not just evidence/timeline.
-const difficultyHandlerMatch = html.match(/\$\("difficultySelect"\)\.addEventListener\("change",\(\)=>\{([\s\S]*?)\}\);/);
+const difficultyHandlerMatch = app.match(/\$\("difficultySelect"\)\.addEventListener\("change",\(\)=>\{([\s\S]*?)\}\);/);
 assert.ok(difficultyHandlerMatch, "difficulty change handler missing");
 for (const resetMarker of [
   'state.evidenceIds=[]','state.timelineIds=[]','state.scope={}',
   'state.classification={attackType:"",successState:"",initialEntity:"",indicator:""}',
   'state.containment=""','state.startedAt=Date.now()'
 ]) assert.ok(difficultyHandlerMatch[1].includes(resetMarker), `difficulty reset missing ${resetMarker}`);
+
 
 for (const scenario of SCENARIOS) {
   assert.ok(scenario.caseId.startsWith("INC-701-"));
@@ -58,10 +70,12 @@ for (const scenario of SCENARIOS) {
     for (const id of scenario.answers.evidenceIds) assert.ok(eventIds.has(id), `${scenario.id}: missing evidence ${id}`);
     for (const id of scenario.answers.timelineIds) assert.ok(eventIds.has(id), `${scenario.id}: missing timeline ${id}`);
 
+    // The display order is intentionally not purely chronological.
     const chrono = sortChronologically(events).map(e => e.id);
     const displayed = events.map(e => e.id);
     assert.notDeepEqual(displayed, chrono, `${scenario.id}/${difficulty}: PBQ should preserve chronology trap`);
 
+    // Normalized/raw views must always have useful fields.
     for (const event of events) {
       assert.ok(!Number.isNaN(new Date(event.timestamp).valueOf()), `${scenario.id}: invalid timestamp ${event.id}`);
       assert.ok(event.sourceType && event.action && event.result && event.message, `${scenario.id}: incomplete normalized event ${event.id}`);
@@ -119,9 +133,11 @@ for (const scenario of SCENARIOS) {
     assert.equal(relevantResult.relationships.find(r => r.id === "chronology").pass, true, `${scenario.id}: valid corroborating evidence should preserve chronology integrity`);
   }
 
+  // Every canonical relationship is independently named and unique.
   const rels = evaluateRelationships(scenario.id, canonical);
   assert.equal(new Set(rels.map(r => r.id)).size, 10, `${scenario.id}: duplicate relationship IDs`);
 
+  // Choosing the explicitly destructive containment distractor must trip the critical gate.
   const destructive = scenario.options.containment.find(x => x.critical);
   assert.ok(destructive, `${scenario.id}: destructive distractor required`);
   const bad = {...canonical, containment: destructive.value};
@@ -129,6 +145,7 @@ for (const scenario of SCENARIOS) {
   assert.equal(badResult.criticalFailure, true, `${scenario.id}: destructive response must be critical failure`);
   assert.ok(badResult.score < 100);
 
+  // Misclassifying a confirmed compromised entity as clean must also be critical.
   const confirmedEntity = Object.entries(scenario.answers.scope).find(([,v]) => v === "confirmed")[0];
   const scopeBad = canonicalAttempt(scenario.id);
   scopeBad.scope[confirmedEntity] = "clean";
@@ -157,6 +174,7 @@ for (const scenario of SCENARIOS) {
   assert.equal(containmentBadResult.secure, false, `${scenario.id}: wrong containment cannot be rated secure`);
   assert.notEqual(containmentBadResult.rating, "Excellent investigation", `${scenario.id}: wrong containment cannot be rated excellent`);
 
+  // Noise-only evidence must fail correlation/noise relationships.
   const noiseIds = getEvents(scenario.id, "advanced").filter(e => e.noise).slice(0, 5).map(e => e.id);
   const noiseAttempt = canonicalAttempt(scenario.id);
   noiseAttempt.evidenceIds = noiseIds;
