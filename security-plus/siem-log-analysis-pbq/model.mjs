@@ -1,7 +1,7 @@
 // Security+ SY0-701 — SIEM / Log Analysis / Incident Correlation PBQ
 // Canonical vendor-neutral scenario and scoring model.
 
-export const VERSION = "1.0.0";
+export const VERSION = "1.0.1";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const pad = (n) => String(n).padStart(2, "0");
@@ -49,15 +49,24 @@ const commonNoise = [
   ["Web / Application","WEB-02","","192.0.2.31","WEB-02:443","GET /robots.txt","404","info","Ordinary missing-resource request"],
 ];
 
-function generatedNoise(scenarioId, count) {
+function formatLocalPdt(ms) {
+  // All synthetic v1 scenarios occur during PDT (UTC-07:00). Preserve local clock
+  // time so generated noise stays visually comparable to the scenario telemetry.
+  return `${new Date(ms - 7 * 60 * 60 * 1000).toISOString().slice(0, 19)}-07:00`;
+}
+
+function generatedNoise(scenario, count) {
   const out = [];
+  const anchorMs = new Date(scenario.events[0].timestamp).getTime();
   for (let i = 0; i < count; i++) {
     const t = commonNoise[i % commonNoise.length];
-    const minute = 20 + ((i * 7 + scenarioId.length) % 31);
-    const second = (i * 13 + scenarioId.charCodeAt(0)) % 60;
+    // Deterministic noise within roughly four minutes before to ten minutes after
+    // the incident start. Advanced mode therefore adds ambiguity, not an obvious
+    // off-hour block of events that can be discarded without analysis.
+    const offsetSeconds = -240 + ((i * 97 + scenario.id.length * 41) % 841);
     out.push(makeEvent(
-      `${scenarioId}-N${pad(i + 1)}`,
-      `2026-08-15T09:${pad(minute)}:${pad(second)}-07:00`,
+      `${scenario.id}-N${pad(i + 1)}`,
+      formatLocalPdt(anchorMs + offsetSeconds * 1000),
       t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8],
       { noise: true }
     ));
@@ -72,7 +81,8 @@ const credential = {
   family: "Credential Compromise / Unauthorized Access",
   severity: "High",
   reportedAsset: "APP-ADMIN-01 / admin",
-  firstObserved: "2026-08-15 09:14:03 PDT",
+  alertEventId: "C6",
+  firstObserved: "2026-08-15 09:14:10 PDT",
   summary: "The SOC received an alert for repeated privileged authentication failures followed by a successful login. Determine whether the activity progressed to compromise.",
   facts: ["Remote administration is allowed only through VPN-GW.", "The admin account normally originates from ADMIN-NET.", "APP-ADMIN-01 is an administrative jump host.", "MFA was temporarily exempted for this legacy admin workflow."],
   events: [
@@ -133,7 +143,8 @@ const malware = {
   family: "Malware Infection / C2 / Host Spread",
   severity: "Critical",
   reportedAsset: "WS-02",
-  firstObserved: "2026-08-15 10:02:11 PDT",
+  alertEventId: "M9",
+  firstObserved: "2026-08-15 10:04:08 PDT",
   summary: "EDR quarantined a suspicious file on WS-02. Determine the true infection order, affected scope, and the first containment action.",
   facts: ["EDR quarantine timestamps may occur after initial execution.", "DNS-SRV logs all workstation lookups.", "Outbound HTTPS is generally allowed.", "WS-01 and WS-02 are user workstations on the same segment."],
   events: [
@@ -194,6 +205,7 @@ const web = {
   family: "Web Application Intrusion",
   severity: "High",
   reportedAsset: "WEB-01",
+  alertEventId: "W1",
   firstObserved: "2026-08-15 11:27:03 PDT",
   summary: "A WAF signature identified a suspicious request. Determine whether the request was merely detected, blocked, or likely succeeded.",
   facts: ["WAF-01 is currently in alert-only mode for one legacy application path.", "WEB-01 connects to DB-01 using an application service account.", "Normal external users should never retrieve finance export rows.", "WEB-02 hosts only a health endpoint."],
@@ -253,7 +265,8 @@ const exfil = {
   family: "Suspicious Data Access / Exfiltration",
   severity: "Critical",
   reportedAsset: "WS-17 / jdoe",
-  firstObserved: "2026-08-15 07:58:12 PDT",
+  alertEventId: "E5",
+  firstObserved: "2026-08-15 08:03:11 PDT",
   summary: "DLP identified sensitive finance data during an external transfer. Determine whether the event reflects access only, attempted transfer, or confirmed exfiltration.",
   facts: ["jdoe works in Operations, not Finance.", "WS-17 is assigned to jdoe.", "DLP is configured in monitor-only mode for the legacy upload service.", "Finance exports are stored on FIN-FILE-01."],
   events: [
@@ -326,7 +339,7 @@ export function getEvents(scenarioId, difficulty = "standard") {
   const scenario = getScenario(scenarioId);
   const target = difficulty === "advanced" ? 32 : 22;
   const needed = Math.max(0, target - scenario.events.length);
-  const events = [...scenario.events, ...generatedNoise(scenarioId, needed)].map((e) => ({
+  const events = [...scenario.events, ...generatedNoise(scenario, needed)].map((e) => ({
     ...e,
     raw: e.raw || formatRaw(e)
   }));
@@ -359,7 +372,8 @@ function f1Score(selected, expected) {
 
 function timelineScore(selected, expected) {
   if (!selected?.length) return 0;
-  const position = new Map(selected.map((id, i) => [id, i]));
+  const uniqueSelected = [...new Set(selected)];
+  const position = new Map(uniqueSelected.map((id, i) => [id, i]));
   const expectedSet = new Set(expected);
   let pairTotal = 0;
   let pairCorrect = 0;
@@ -371,9 +385,13 @@ function timelineScore(selected, expected) {
       if (a !== undefined && b !== undefined && a < b) pairCorrect++;
     }
   }
-  const coverage = selected.filter((id) => expectedSet.has(id)).length / expected.length;
+  const expectedSelected = uniqueSelected.filter((id) => expectedSet.has(id)).length;
+  const coverage = expectedSelected / expected.length;
+  const precision = expectedSelected / uniqueSelected.length;
   const order = pairTotal ? pairCorrect / pairTotal : 0;
-  return Math.max(0, Math.min(1, coverage * order));
+  // A correct incident timeline is both ordered and minimal. Extra/noise events now
+  // reduce precision instead of receiving full chronology credit.
+  return Math.max(0, Math.min(1, coverage * precision * order));
 }
 
 function classificationScore(given, expected) {
