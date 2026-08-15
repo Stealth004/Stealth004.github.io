@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="CompTIA Security+ SY0-701 firewall diagnostic repair PBQ practice: troubleshoot rule order, least privilege, services, DNS, WAF paths, logging, and critical exposure.">
+<title>Security+ SY0-701 Firewall Diagnostic Repair PBQ</title>
+<style>
+:root{color-scheme:dark;--bg:#06101c;--panel:#0c1b2b;--panel2:#10263c;--line:#294761;--text:#edf7ff;--muted:#9db3c6;--accent:#39c6f4;--accent2:#24d6c7;--ok:#34d399;--bad:#fb7185;--warn:#fbbf24;--violet:#a78bfa;--shadow:0 14px 40px rgba(0,0,0,.28);--radius:18px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(circle at 10% -8%,rgba(57,198,244,.17),transparent 34rem),linear-gradient(180deg,#05101c,var(--bg));color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+a{color:var(--accent)}button,select,input{font:inherit}button{cursor:pointer}.shell{width:min(1320px,calc(100% - 28px));margin:0 auto;padding:26px 0 54px}
+.hero,.dossier,.card,.results{border:1px solid #315875;border-radius:20px;background:linear-gradient(145deg,rgba(12,32,50,.96),rgba(8,24,39,.96));padding:20px;box-shadow:0 8px 28px rgba(0,0,0,.2)}
+.hero{border-radius:24px;padding:clamp(22px,4vw,40px);position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:18rem;height:18rem;border-radius:50%;right:-6rem;bottom:-10rem;background:rgba(36,214,199,.08);pointer-events:none}
+.eyebrow{color:var(--accent2);text-transform:uppercase;letter-spacing:.12em;font-size:.78rem;font-weight:800}h1{margin:7px 0 9px;font-size:clamp(2rem,5vw,3.35rem);line-height:1.05}h2,h3{margin:0}.hero p,.section-head p,.dossier p{color:var(--muted);margin:5px 0 0;max-width:930px}
+.mode-switch,.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.mode-link,.btn{min-height:44px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:#10243a;color:var(--text);font-weight:760;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}.mode-link.active,.btn-primary{background:linear-gradient(135deg,var(--accent),#0284c7);border-color:transparent;color:#00151f}.btn-violet{background:#221b3c;border-color:#51437c}.btn:hover,.mode-link:hover{border-color:#4d7898}.btn:disabled{opacity:.45;cursor:not-allowed}
+.meta{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:22px}.meta-card{border:1px solid var(--line);border-radius:14px;background:rgba(3,14,25,.52);padding:12px 14px}.meta-card small{display:block;color:var(--muted)}.meta-card strong{display:block;margin-top:3px}
+.statusbar{margin:17px 0 25px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.progress{height:10px;border-radius:999px;border:1px solid #24435d;background:#0c1c2e;overflow:hidden}.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}.counter{color:var(--muted);font-weight:750;white-space:nowrap}
+.dossier-head,.section-head,.device-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.scenario-badge{border:1px solid #426985;border-radius:999px;padding:5px 9px;color:var(--accent2);font-size:.8rem;font-weight:800;white-space:nowrap}.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:14px}.fact{border:1px solid var(--line);border-radius:12px;background:#091827;padding:10px}.fact small{color:var(--muted);display:block}.fact strong{display:block;margin-top:2px;overflow-wrap:anywhere}.requirements{margin:14px 0 0;padding-left:20px}.requirements li{margin:5px 0;color:#d6e8f6}
+.ticket{margin-top:16px;border:1px solid rgba(251,191,36,.55);background:rgba(90,64,8,.16);border-radius:15px;padding:14px}.ticket h3{color:#ffe39a}.ticket ul{margin:8px 0 0;padding-left:20px}.ticket li{margin:5px 0;color:#ffe9b8}.ticket .exam-note{font-size:.82rem;color:var(--muted);margin-top:8px}
+.topology{margin-top:16px;display:grid;grid-template-columns:1fr auto 1.1fr auto 1fr;gap:9px;align-items:center}.node{border:1px solid #365b77;background:#081827;border-radius:14px;padding:13px;text-align:center}.node strong{display:block}.node small{color:var(--muted)}.arrow{font-size:1.25rem;font-weight:900;color:var(--accent)}.node.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(57,198,244,.14)}.node.allow{border-color:var(--ok)}.node.block{border-color:var(--bad)}
+.section{margin-top:29px}.section-head{align-items:end;margin-bottom:13px}.section-score{color:var(--accent2);font-weight:850;white-space:nowrap}.firewalls{display:grid;gap:16px}.firewall-card{border:1px solid var(--line);border-radius:var(--radius);background:rgba(12,27,43,.94);padding:16px}.device-head{align-items:center;margin-bottom:12px}.device-title{display:flex;gap:10px;align-items:center}.device-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:#0b3144;border:1px solid #2f6178;font-weight:900}.device-title small{display:block;color:var(--muted)}
+.rule-scroll{overflow-x:auto}.rule-table{width:100%;border-collapse:separate;border-spacing:0 8px;min-width:1000px}.rule-table th{text-align:left;padding:0 7px;color:var(--muted);font-size:.82rem}.rule-table td{padding:8px 7px;background:#091827;border-top:1px solid rgba(41,71,97,.7);border-bottom:1px solid rgba(41,71,97,.7);vertical-align:top}.rule-table td:first-child{border-left:1px solid rgba(41,71,97,.7);border-radius:11px 0 0 11px}.rule-table td:last-child{border-right:1px solid rgba(41,71,97,.7);border-radius:0 11px 11px 0}.purpose{min-width:165px}.purpose strong{display:block}.purpose small{display:block;color:var(--muted)}.rule-table select{width:100%;min-width:128px;min-height:42px;border:1px solid #365b77;border-radius:9px;background:#061522;color:var(--text);padding:8px}.move-controls{display:flex;gap:5px}.btn-small{min-height:34px;padding:6px 9px;font-size:.82rem}.edited{outline:2px solid rgba(251,191,36,.38);outline-offset:1px}.post-correct{border-color:var(--ok)!important}.post-bad{border-color:var(--bad)!important}
+.study{display:none;margin-top:14px;border:1px solid #285b75;background:rgba(8,51,68,.35);border-radius:14px;padding:14px;color:#cbeffd}.study.show{display:block}.study-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:10px}.study-item{background:#081827;border-left:3px solid var(--accent);border-radius:9px;padding:10px}.study-item strong{display:block}.study-item span{font-size:.84rem;color:var(--muted)}
+.test-panel{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}.test-panel label{display:grid;gap:6px;font-weight:750}.test-panel select{min-height:44px;border:1px solid #365b77;border-radius:10px;background:#061522;color:var(--text);padding:9px 10px}.test-results{display:grid;gap:8px;margin-top:13px}.test-result{border:1px solid var(--line);border-radius:11px;background:#091827;padding:10px 11px}.test-result strong{display:block}.test-result small{color:var(--muted)}.test-result.good{border-color:rgba(52,211,153,.65)}.test-result.bad{border-color:rgba(251,113,133,.72)}
+.results{display:none;margin-top:26px}.results.show{display:block}.result-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:14px 0}.score-card{border:1px solid var(--line);border-radius:13px;background:#081827;padding:11px}.score-card small{display:block;color:var(--muted)}.score-card strong{font-size:1.35rem}.score-good{color:var(--ok)}.score-mid{color:var(--warn)}.score-low{color:var(--bad)}.critical{border:1px solid var(--bad);background:rgba(127,29,29,.25);border-radius:12px;padding:11px;color:#ffdbe1;margin:12px 0}.repair-list{display:grid;gap:8px;margin-top:12px}.repair{border:1px solid var(--line);border-radius:11px;background:#091827;padding:10px}.repair strong{display:block}.repair small{display:block;color:var(--muted);margin-top:3px}.repair.good{border-color:rgba(52,211,153,.6)}.repair.bad{border-color:rgba(251,113,133,.7)}.repair.noisy{border-color:rgba(251,191,36,.65)}details{border:1px solid var(--line);border-radius:12px;background:#081827;padding:11px 13px;margin-top:9px}summary{cursor:pointer;font-weight:800}.change-table{width:100%;border-collapse:collapse;margin-top:10px}.change-table th,.change-table td{text-align:left;padding:8px;border-bottom:1px solid var(--line);font-size:.84rem}.change-table th{color:var(--accent2)}
+.footer{text-align:center;color:var(--muted);font-size:.85rem;padding-top:32px}
+button:focus-visible,select:focus,a:focus-visible{outline:3px solid rgba(57,198,244,.32);outline-offset:2px}
+@media(max-width:1020px){.meta{grid-template-columns:repeat(3,1fr)}.facts,.study-grid{grid-template-columns:repeat(2,1fr)}.topology{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}.result-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.shell{width:min(100% - 16px,1320px);padding-top:9px}.hero,.dossier,.card,.results{padding:15px}.meta,.facts,.study-grid{grid-template-columns:1fr 1fr}.dossier-head,.section-head{align-items:flex-start;flex-direction:column}.test-panel{grid-template-columns:1fr}.result-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:450px){.meta,.facts,.study-grid,.result-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.progress>div{transition:none}}
+</style>
+</head>
+<body>
+<main class="shell">
+<section class="hero">
+  <div class="eyebrow">CompTIA Security+ SY0-701 • Advanced Firewall Rules v1.1</div>
+  <h1>Diagnostic Repair Mode</h1>
+  <p>Start with an almost-correct firewall policy, reproduce symptoms, find the first matching rule, repair only what is necessary, and retest the system. This companion preserves the delivered Build Mode while adding troubleshooting transfer practice.</p>
+  <div class="mode-switch" aria-label="Firewall practice mode">
+    <a class="mode-link" href="./index.html">Build Mode</a>
+    <a class="mode-link active" href="./diagnostic.html" aria-current="page">Diagnose Mode</a>
+  </div>
+  <div class="meta">
+    <div class="meta-card"><small>Scenario</small><strong id="profileLabel">—</strong></div>
+    <div class="meta-card"><small>Difficulty</small><strong id="difficultyLabel">Standard</strong></div>
+    <div class="meta-card"><small>Defects</small><strong id="defectMeta">Hidden in Exam</strong></div>
+    <div class="meta-card"><small>Edited locations</small><strong id="editCount">0</strong></div>
+    <div class="meta-card"><small>Attempt time</small><strong id="timer">00:00</strong></div>
+  </div>
+  <div class="toolbar">
+    <button class="btn btn-primary" id="submitBtn" type="button">Submit Diagnostic</button>
+    <button class="btn" id="newBtn" type="button">New Diagnostic</button>
+    <button class="btn btn-violet" id="studyBtn" type="button" aria-pressed="false">Study Mode: Off</button>
+    <label class="btn" style="gap:7px">Difficulty
+      <select id="difficultySelect" aria-label="Diagnostic difficulty" style="background:#061522;color:var(--text);border:1px solid #365b77;border-radius:8px;padding:5px">
+        <option value="standard">Standard</option>
+        <option value="advanced">Advanced</option>
+      </select>
+    </label>
+    <label class="btn" style="gap:7px">Profile
+      <select id="profileSelect" aria-label="Firewall profile" style="background:#061522;color:var(--text);border:1px solid #365b77;border-radius:8px;padding:5px"></select>
+    </label>
+  </div>
+</section>
+
+<div class="statusbar"><div class="progress"><div id="progressFill"></div></div><div class="counter"><span id="changedCounter">0</span> changed locations</div></div>
+
+<section class="dossier" aria-labelledby="scenarioTitle">
+  <div class="dossier-head"><div><div class="eyebrow">Deployment Brief</div><h2 id="scenarioTitle">Scenario</h2><p id="scenarioSummary"></p></div><div class="scenario-badge" id="scenarioId">FW-DIAG</div></div>
+  <div class="facts" id="facts"></div>
+  <ul class="requirements" id="requirements"></ul>
+  <div class="ticket"><h3>Troubleshooting Ticket</h3><ul id="ticketSymptoms"></ul><div class="exam-note" id="ticketNote">Symptoms describe observed behavior. They do not identify the defective rule.</div></div>
+  <div class="topology" id="topology" aria-label="Simplified firewall diagnostic flow">
+    <div class="node" id="nodeSource"><strong>Source / Zone</strong><small>APP-ZONE • FINANCE-ZONE • WAF-PROXY • Admin</small></div>
+    <div class="arrow">→</div>
+    <div class="node" id="nodeFirewall"><strong>NGFW Policy</strong><small>Top-down first match</small></div>
+    <div class="arrow">→</div>
+    <div class="node" id="nodeTarget"><strong>Protected Service</strong><small>DB-SRV • NAS-SRV • API-SRV • DNS-SRV</small></div>
+  </div>
+  <div class="study" id="studyPanel">
+    <strong>Diagnostic mental flow: REQ → FLOW → MATCH → ORDER → FIX → TEST</strong>
+    <div class="study-grid">
+      <div class="study-item"><strong>REQ</strong><span>Read what should be allowed or blocked.</span></div>
+      <div class="study-item"><strong>FLOW</strong><span>Reproduce the failed or suspicious connection.</span></div>
+      <div class="study-item"><strong>MATCH</strong><span>Find the first rule whose source, destination, and service match.</span></div>
+      <div class="study-item"><strong>ORDER</strong><span>If a rule looks correct but traffic still fails, inspect the rule above it.</span></div>
+      <div class="study-item"><strong>FIX</strong><span>Change scope, service, action, logging, or order only where needed.</span></div>
+      <div class="study-item"><strong>TEST</strong><span>Rerun traffic. Working traffic can still be insecure if scope is too broad.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head"><div><h2>Repair the Firewall Policy</h2><p>The policy is prepopulated. In Exam behavior, defective fields are not highlighted. Make the minimum set of changes needed to satisfy the deployment brief.</p></div><div class="section-score" id="policyState">In progress</div></div>
+  <div class="firewalls" id="firewalls"></div>
+</section>
+
+<section class="section">
+  <div class="section-head"><div><h2>Test Connections</h2><p>Use observed traffic behavior as evidence. Before submission, the simulator shows the actual result and first matched rule—not the expected answer.</p></div></div>
+  <div class="card">
+    <div class="test-panel">
+      <label>Traffic path<select id="testSelect"></select></label>
+      <button class="btn" id="testBtn" type="button">Run Test</button>
+    </div>
+    <div class="test-results" id="testResults"><div class="test-result"><strong>No test run yet</strong><small>Select a path and reproduce the symptom.</small></div></div>
+  </div>
+</section>
+
+<section class="results" id="results" aria-live="polite">
+  <div class="eyebrow">Diagnostic Results</div><h2 id="headline">Attempt scored</h2>
+  <div class="result-grid">
+    <div class="score-card"><small>Final policy accuracy</small><strong id="policyScore">0%</strong></div>
+    <div class="score-card"><small>Defects repaired</small><strong id="repairScore">0/0</strong></div>
+    <div class="score-card"><small>Relationships</small><strong id="relationScore">0/10</strong></div>
+    <div class="score-card"><small>Unnecessary changes</small><strong id="noiseScore">0</strong></div>
+    <div class="score-card"><small>Critical risk</small><strong id="riskScore">—</strong></div>
+  </div>
+  <div id="criticalBox"></div>
+  <p id="resultMessage"></p>
+  <div class="repair-list" id="repairList"></div>
+  <details><summary>Change log — starting value → final value → required value</summary><div id="changeLog"></div></details>
+  <details><summary>Relationship review</summary><div class="repair-list" id="relationshipList"></div></details>
+</section>
+
+<section class="section">
+  <div class="section-head"><div><h2>Review After Retrieval</h2><p>Keep these closed during an exam-style attempt.</p></div></div>
+  <details><summary>Exam logic — rule order</summary><p><strong>If a rule looks correct but traffic still fails, inspect the rule above it.</strong> A top-down firewall can match an earlier broad deny/permit before reaching the intended rule.</p></details>
+  <details><summary>Exam logic — scope</summary><p><strong>If traffic works but exposure is too broad, the problem is scope—not availability.</strong> Narrow source/destination objects rather than adding another permit.</p></details>
+  <details><summary>Exam logic — WAF path</summary><p>HTTPS does not make direct backend access acceptable. If architecture requires Internet → WAF-PROXY → API-SRV, an Internet → API-SRV permit bypasses the enforcement layer.</p></details>
+  <details><summary>Memory aid</summary><p><strong>REQ → FLOW → MATCH → ORDER → FIX → TEST.</strong> Build Mode asks you to create policy; Diagnostic Mode asks you to explain why an almost-correct policy behaves incorrectly.</p></details>
+</section>
+<div class="footer">Independent Security+ SY0-701 practice simulation. Not affiliated with or endorsed by CompTIA or any firewall vendor.</div>
+</main>
+
+<script id="model">
+(function(){
+'use strict';
+const DEVICES=[
+ {id:'db',firewall:'NGFW-DB',name:'Database firewall',server:'DB-SRV',role:'MongoDB database',service:'MONGODB',port:'TCP 27017'},
+ {id:'nas',firewall:'NGFW-NAS',name:'NAS firewall',server:'NAS-SRV',role:'Business file share',service:'SMB',port:'TCP 445'},
+ {id:'api',firewall:'NGFW-API',name:'API firewall',server:'API-SRV',role:'Marketing API',service:'HTTPS',port:'TCP 443'}
+];
+const OPTIONS={
+ source:['','ANY','INTERNET','APP-ZONE','FINANCE-ZONE','WAF-PROXY','ADMIN-NET','VENDOR-VPN','IR-ADMIN','DB-SRV','NAS-SRV','API-SRV'],
+ destination:['','ANY','DB-SRV','NAS-SRV','API-SRV','DNS-SRV','INTERNET'],
+ service:['','ANY','MONGODB','SMB','HTTPS','HTTP','SSH','TELNET','DNS'],
+ action:['','PERMIT','DENY'],
+ logging:['','LOG','NO LOG']
+};
+const PURPOSE={workload:['Workload access','Business traffic for the protected role'],management:['Secure management','Encrypted administration from an approved source'],dns:['DNS resolution','Protected host to internal resolver'],audit:['HTTP audit deny','Explicitly log prohibited cleartext HTTP'],default:['Default deny','Final logging catch-all']};
+const rule=(key,source,destination,service,action='PERMIT',logging='LOG')=>({key,source,destination,service,action,logging});
+const baseRules=(device,source,mgmt='ADMIN-NET',apiAudit=false,workAction='PERMIT')=>{
+ const rows=[
+  rule('workload',source,device.server,device.service,workAction,'LOG'),
+  rule('management',mgmt,device.server,'SSH','PERMIT','LOG'),
+  rule('dns',device.server,'DNS-SRV','DNS','PERMIT','LOG')
+ ];
+ if(device.id==='api'&&apiAudit)rows.push(rule('audit','INTERNET',device.server,'HTTP','DENY','LOG'));
+ rows.push(rule('default','ANY','ANY','ANY','DENY','LOG'));
+ return rows;
+};
+const makeAnswers=(sources,mgmt='ADMIN-NET',apiAudit=false,workAction='PERMIT')=>Object.fromEntries(DEVICES.map(d=>[d.id,baseRules(d,sources[d.id],mgmt,apiAudit,workAction)]));
+const profile=(id,label,title,summary,facts,requirements,sources,mgmt='ADMIN-NET',apiAudit=false,workAction='PERMIT')=>{
+ const answers=makeAnswers(sources,mgmt,apiAudit,workAction);
+ return {id,label,title,summary,facts,requirements,sources,mgmt,apiAudit,workAction,answers};
+};
+const PROFILES=[
+ profile('FW-701-PROD-01','Segmented production','Segmented Production Services','Three protected services require tightly scoped workload access, secure administration, internal DNS, and a final logging deny.',
+  [['Admin source','ADMIN-NET'],['Resolver','DNS-SRV'],['Internet posture','Default deny'],['Firewall type','Stateful NGFW']],
+  ['Permit each workload only from its approved source zone.','Permit SSH management only from ADMIN-NET.','Permit each protected host to query DNS-SRV.','Finish every policy with a logging default deny.'],
+  {db:'APP-ZONE',nas:'FINANCE-ZONE',api:'WAF-PROXY'}),
+ profile('FW-701-WAF-02','Public API behind WAF','Public API Behind a WAF','The public API is reachable only through the approved WAF/reverse-proxy path. Cleartext HTTP attempts require explicit logged denial.',
+  [['Public entry','WAF-PROXY'],['API transport','HTTPS only'],['Cleartext HTTP','Explicit deny + log'],['Database / NAS','Never public']],
+  ['Permit API HTTPS only from WAF-PROXY.','Do not expose the database or NAS to the Internet.','Retain controlled DNS for each protected host.','Keep the final logging deny last.'],
+  {db:'APP-ZONE',nas:'FINANCE-ZONE',api:'WAF-PROXY'},'ADMIN-NET',true),
+ profile('FW-701-MAINT-03','Approved remote maintenance','Vendor Maintenance Window','A contracted team may administer the protected servers only through the approved vendor VPN during a change window.',
+  [['Maintenance source','VENDOR-VPN'],['Management service','SSH'],['Window','Approved change'],['Return traffic','Stateful']],
+  ['Restrict SSH management to VENDOR-VPN.','Do not add reverse-direction return rules.','Preserve approved workload and DNS access.','Finish with a logging default deny.'],
+  {db:'APP-ZONE',nas:'FINANCE-ZONE',api:'WAF-PROXY'},'VENDOR-VPN'),
+ profile('FW-701-IR-04','Incident containment','Incident Response Containment','Active compromise indicators require workload isolation while responders retain SSH access and controlled DNS for investigation.',
+  [['Responder source','IR-ADMIN'],['Workload state','Contain / deny'],['DNS','Internal resolver only'],['Evidence','Log decisions']],
+  ['Deny normal workload flows during containment.','Permit SSH only from IR-ADMIN.','Keep DNS limited to DNS-SRV.','Log the final catch-all denial.'],
+  {db:'APP-ZONE',nas:'FINANCE-ZONE',api:'WAF-PROXY'},'IR-ADMIN',false,'DENY')
+];
+function clonePolicy(p){return Object.fromEntries(Object.entries(p.answers).map(([d,rs])=>[d,rs.map(r=>({...r}))]));}
+function getRule(policy,d,k){return (policy[d]||[]).find(r=>r.key===k);}
+function locField(d,k,f){return `field:${d}:${k}:${f}`;}
+function locOrder(d){return `order:${d}`;}
+function serializeOrder(policy,d){return (policy[d]||[]).map(r=>r.key).join('|');}
+function allLocations(policy){
+ const out={};
+ for(const [d,rows] of Object.entries(policy)){
+  for(const r of rows)for(const f of ['source','destination','service','action','logging'])out[locField(d,r.key,f)]=r[f];
+  out[locOrder(d)]=serializeOrder(policy,d);
+ }
+ return out;
+}
+function evaluatePacket(rules,p){
+ for(const r of rules){
+  const match=(r.source==='ANY'||r.source===p.source)&&(r.destination==='ANY'||r.destination===p.destination)&&(r.service==='ANY'||r.service===p.service);
+  if(match)return {action:r.action,rule:r};
+ }
+ return {action:'DENY',rule:null};
+}
+function testsFor(profile){
+ const out=[];
+ for(const d of DEVICES){
+  const workload=getRule(profile.answers,d.id,'workload'),mgmt=getRule(profile.answers,d.id,'management');
+  out.push({id:`${d.id}-workload`,device:d.id,label:`${workload.source} → ${d.server} ${d.port}`,source:workload.source,destination:d.server,service:d.service,expect:workload.action});
+  out.push({id:`${d.id}-mgmt`,device:d.id,label:`${mgmt.source} → ${d.server} SSH 22`,source:mgmt.source,destination:d.server,service:'SSH',expect:'PERMIT'});
+  out.push({id:`${d.id}-untrusted`,device:d.id,label:`INTERNET → ${d.server} ${d.port}`,source:'INTERNET',destination:d.server,service:d.service,expect:workload.source==='INTERNET'&&workload.action==='PERMIT'?'PERMIT':'DENY'});
+  out.push({id:`${d.id}-dns`,device:d.id,label:`${d.server} → DNS-SRV DNS 53`,source:d.server,destination:'DNS-SRV',service:'DNS',expect:'PERMIT'});
+  out.push({id:`${d.id}-external-dns`,device:d.id,label:`${d.server} → INTERNET DNS 53`,source:d.server,destination:'INTERNET',service:'DNS',expect:'DENY'});
+  out.push({id:`${d.id}-telnet`,device:d.id,label:`INTERNET → ${d.server} TELNET 23`,source:'INTERNET',destination:d.server,service:'TELNET',expect:'DENY'});
+  const audit=getRule(profile.answers,d.id,'audit');
+  if(audit)out.push({id:`${d.id}-http-audit`,device:d.id,label:`INTERNET → ${d.server} HTTP 80`,source:'INTERNET',destination:d.server,service:'HTTP',expect:'DENY',match:'audit'});
+ }
+ return out;
+}
+function relationships(profile,policy){
+ const flat=Object.values(policy).flat(),get=(d,k)=>getRule(policy,d,k);
+ const ordered=d=>serializeOrder(policy,d)===serializeOrder(profile.answers,d);
+ const exact=(d,k)=>{const a=get(d,k),b=getRule(profile.answers,d,k);return a&&b&&['source','destination','service','action','logging'].every(f=>a[f]===b[f]);};
+ const tests=testsFor(profile),allTests=tests.every(t=>evaluatePacket(policy[t.device]||[],t).action===t.expect);
+ const checks=[
+  ['workload_service','Workload service matches the protected role',DEVICES.every(d=>{const r=get(d.id,'workload');return r&&r.destination===d.server&&r.service===d.service;}),'Map MongoDB→27017, SMB→445, and API→HTTPS 443 to the correct destination.'],
+  ['management_scope','Management source is restricted',DEVICES.every(d=>{const r=get(d.id,'management');return r&&r.source===profile.mgmt&&r.destination===d.server&&r.service==='SSH'&&r.action==='PERMIT';}),'Use only the scenario-approved management source and SSH.'],
+  ['no_insecure_management','No insecure or broad management permit',!flat.some(r=>r.key==='management'&&r.action==='PERMIT'&&(['TELNET','HTTP'].includes(r.service)||['ANY','INTERNET'].includes(r.source))),'Do not permit Telnet, HTTP management, ANY, or Internet-wide administration.'],
+  ['dns_scope','DNS is restricted to DNS-SRV',DEVICES.every(d=>{const r=get(d.id,'dns');return r&&r.source===d.server&&r.destination==='DNS-SRV'&&r.service==='DNS'&&r.action==='PERMIT';}),'Each protected host should resolve only through DNS-SRV.'],
+  ['no_public_data','Database and NAS are not public',['db','nas'].every(d=>!(policy[d]||[]).some(r=>r.action==='PERMIT'&&['ANY','INTERNET'].includes(r.source))),'Database/NAS permits must use approved internal sources.'],
+  ['api_path','API follows the approved workload path',exact('api','workload'),'The API workload tuple must match the scenario; WAF profiles require WAF-PROXY rather than direct Internet access.'],
+  ['specific_scope','Permits use specific objects',!flat.some(r=>r.action==='PERMIT'&&(r.source==='ANY'||r.destination==='ANY')),'Replace ANY on permitted rules with named objects.'],
+  ['ordered_paths','Required traffic survives top-down order',allTests&&DEVICES.every(d=>ordered(d.id)),'A correct rule below an earlier matching catch-all may never execute. Restore canonical order and rerun traffic.'],
+  ['final_deny','Every firewall ends with logging default deny',DEVICES.every(d=>{const r=(policy[d.id]||[]).at(-1);return r&&r.key==='default'&&r.source==='ANY'&&r.destination==='ANY'&&r.service==='ANY'&&r.action==='DENY'&&r.logging==='LOG';}),'Finish each firewall with ANY→ANY→ANY→DENY→LOG.'],
+  ['audit_stateful','HTTP audit appears only where required',DEVICES.every(d=>Boolean(get(d.id,'audit'))===Boolean(getRule(profile.answers,d.id,'audit'))),'Keep the explicit HTTP audit deny only in the WAF profile; stateful return traffic needs no duplicate reverse permit.']
+ ];
+ return checks.map(([id,label,ok,detail])=>({id,label,ok:Boolean(ok),detail}));
+}
+function criticalRisks(policy){
+ const risks=[];
+ for(const d of ['db','nas'])if((policy[d]||[]).some(r=>r.action==='PERMIT'&&['ANY','INTERNET'].includes(r.source)))risks.push(`Public access permit reaches ${d.toUpperCase()}.`);
+ if(Object.values(policy).flat().some(r=>r.key==='management'&&r.action==='PERMIT'&&['ANY','INTERNET'].includes(r.source)))risks.push('Management is exposed to an untrusted source.');
+ if(Object.values(policy).some(rows=>rows.some(r=>r.source==='ANY'&&r.destination==='ANY'&&r.service==='ANY'&&r.action==='PERMIT')))risks.push('An allow-all rule permits traffic outside the approved policy.');
+ const apiWork=getRule(policy,'api','workload');if(apiWork&&apiWork.source==='INTERNET'&&apiWork.action==='PERMIT')risks.push('The API backend is directly exposed instead of using the approved proxy path.');
+ if(Object.values(policy).flat().some(r=>r.service==='DNS'&&r.action==='PERMIT'&&(r.source==='ANY'||r.destination==='ANY'||r.destination==='INTERNET')))risks.push('DNS is permitted to an arbitrary or external destination.');
+ return [...new Set(risks)];
+}
+function hashSeed(v){let h=2166136261;for(const ch of String(v)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
+function rngFor(seed){let a=hashSeed(seed);return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function shuffle(a,rng){const out=a.slice();for(let i=out.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[out[i],out[j]]=[out[j],out[i]];}return out;}
+const MUTATIONS=[
+ {id:'shadow-default',label:'Rule shadowing / early default deny',severity:'order',profiles:'all',locations:p=>[locOrder(['db','nas','api'][hashSeed(p.id)%3])],
+  apply:(p,policy,ctx)=>{const ds=['db','nas','api'],d=ds[Math.floor(ctx.rng()*ds.length)],rows=policy[d],i=rows.findIndex(r=>r.key==='default');rows.unshift(rows.splice(i,1)[0]);return {device:d,symptom:`Approved traffic through ${d.toUpperCase()} is unexpectedly blocked even though a specific rule exists.`};}},
+ {id:'broad-management',label:'Overbroad management source',severity:'critical',profiles:'all',
+  apply:(p,policy,ctx)=>{const d=ctx.pickDevice();getRule(policy,d,'management').source='ANY';return {device:d,symptom:`Administrative access to ${d.toUpperCase()} works from more locations than policy permits.`};}},
+ {id:'telnet-management',label:'Insecure management protocol',severity:'high',profiles:'all',
+  apply:(p,policy,ctx)=>{const d=ctx.pickDevice();getRule(policy,d,'management').service='TELNET';return {device:d,symptom:`The management rule for ${d.toUpperCase()} uses an unapproved remote-administration service.`};}},
+ {id:'wrong-workload-service',label:'Wrong workload service',severity:'high',profiles:'all',
+  apply:(p,policy,ctx)=>{const d=ctx.pickDevice(),r=getRule(policy,d,'workload');r.service=d==='db'?'SMB':d==='nas'?'HTTPS':'SMB';return {device:d,symptom:`The approved application path to ${d.toUpperCase()} does not behave as the service owner expects.`};}},
+ {id:'external-dns',label:'External / arbitrary DNS',severity:'high',profiles:'all',
+  apply:(p,policy,ctx)=>{const d=ctx.pickDevice();getRule(policy,d,'dns').destination='INTERNET';return {device:d,symptom:`${d.toUpperCase()} is resolving names through an external path rather than the approved resolver.`};}},
+ {id:'waf-bypass',label:'WAF / backend bypass',severity:'critical',profiles:['FW-701-WAF-02'],
+  apply:(p,policy,ctx)=>{getRule(policy,'api','workload').source='INTERNET';return {device:'api',symptom:'The API backend is directly reachable from an untrusted source instead of only through the approved proxy path.'};}},
+ {id:'wrong-action',label:'Wrong allow / deny action',severity:'high',profiles:'all',
+  apply:(p,policy,ctx)=>{const d=ctx.pickDevice(),r=getRule(policy,d,'workload');r.action=r.action==='PERMIT'?'DENY':'PERMIT';return {device:d,symptom:`The ${d.toUpperCase()} workload is producing the opposite access result from the deployment requirement.`};}},
+ {id:'logging-failure',label:'Logging failure',severity:'medium',profiles:'all',
+  apply:(p,policy,ctx)=>{const d=ctx.pickDevice(),k=ctx.rng()<.5?'management':'default';getRule(policy,d,k).logging='NO LOG';return {device:d,symptom:`A security-relevant ${k} decision on ${d.toUpperCase()} is not producing the required audit trail.`};}},
+ {id:'public-data',label:'Public database / NAS exposure',severity:'critical',profiles:['FW-701-PROD-01','FW-701-WAF-02','FW-701-MAINT-03'],
+  apply:(p,policy,ctx)=>{const d=ctx.rng()<.5?'db':'nas';getRule(policy,d,'workload').source='INTERNET';return {device:d,symptom:`A protected ${d.toUpperCase()} service appears reachable from the Internet.`};}},
+ {id:'allow-all-default',label:'Allow-all / critical exposure',severity:'critical',profiles:'all',
+  apply:(p,policy,ctx)=>{const d=ctx.pickDevice();getRule(policy,d,'default').action='PERMIT';return {device:d,symptom:`Unapproved traffic through ${d.toUpperCase()} is being allowed by the catch-all policy.`};}}
+];
+function mutationAllowed(m,p){return m.profiles==='all'||m.profiles.includes(p.id);}
+function diffLocations(canonical,mutated){
+ const a=allLocations(canonical),b=allLocations(mutated),out=[];
+ for(const k of Object.keys(a))if(a[k]!==b[k])out.push(k);
+ return out;
+}
+function createAttempt(profile,difficulty='standard',seed='FW-DIAG-1'){
+ const canonical=clonePolicy(profile),policy=clonePolicy(profile),rng=rngFor(`${profile.id}|${difficulty}|${seed}`);
+ const count=difficulty==='advanced'?(rng()<.5?3:4):(rng()<.5?2:3);
+ const pool=shuffle(MUTATIONS.filter(m=>mutationAllowed(m,profile)),rng);
+ const applied=[],defective=new Set(),usedDevices=new Set();
+ const ctx={rng,pickDevice(){const candidates=shuffle(['db','nas','api'],rng);const preferred=candidates.find(d=>!usedDevices.has(d))||candidates[0];usedDevices.add(preferred);return preferred;}};
+ for(const m of pool){
+  if(applied.length>=count)break;
+  if(m.severity==='critical'&&applied.some(a=>a.severity==='critical'))continue;
+  const before=cloneRaw(policy);
+  const info=m.apply(profile,policy,ctx);
+  const changes=diffLocations(before,policy);
+  if(!changes.length)continue;
+  if(changes.some(x=>defective.has(x))) { overwritePolicy(policy,before); continue; }
+  changes.forEach(x=>defective.add(x));
+  applied.push({id:m.id,label:m.label,severity:m.severity,changes,info});
+ }
+ if(difficulty==='advanced'&&!applied.some(x=>x.id==='shadow-default')){
+  const shadow=MUTATIONS.find(x=>x.id==='shadow-default');
+  const before=cloneRaw(policy),info=shadow.apply(profile,policy,ctx),changes=diffLocations(before,policy);
+  if(changes.length&&!changes.some(x=>defective.has(x))){
+   if(applied.length>=4){const removed=applied.pop();overwriteLocations(policy,canonical,removed.changes);removed.changes.forEach(x=>defective.delete(x));}
+   changes.forEach(x=>defective.add(x));applied.push({id:shadow.id,label:shadow.label,severity:shadow.severity,changes,info});
+  } else overwritePolicy(policy,before);
+ }
+ const critical=applied.filter(x=>x.severity==='critical');
+ if(critical.length>1){
+  for(let i=1;i<critical.length;i++){const rem=critical[i];overwriteLocations(policy,canonical,rem.changes);rem.changes.forEach(x=>defective.delete(x));const ix=applied.findIndex(x=>x===rem);if(ix>=0)applied.splice(ix,1);}
+ }
+ while(applied.length<2){
+  const m=pool.find(x=>!applied.some(a=>a.id===x.id)&&!(x.severity==='critical'&&applied.some(a=>a.severity==='critical')));
+  if(!m)break;const before=cloneRaw(policy),info=m.apply(profile,policy,ctx),changes=diffLocations(before,policy);
+  if(changes.length&&!changes.some(x=>defective.has(x))){changes.forEach(x=>defective.add(x));applied.push({id:m.id,label:m.label,severity:m.severity,changes,info});}else overwritePolicy(policy,before);
+ }
+ return {profile,difficulty,seed,canonical,starting:cloneRaw(policy),policy:cloneRaw(policy),mutations:applied,defectiveLocations:[...defective],symptoms:applied.map(x=>x.info.symptom)};
+}
+function cloneRaw(policy){return Object.fromEntries(Object.entries(policy).map(([d,rows])=>[d,rows.map(r=>({...r}))]));}
+function overwritePolicy(target,source){for(const d of Object.keys(target))target[d]=source[d].map(r=>({...r}));}
+function parseLoc(loc){const [type,d,k,f]=loc.split(':');return {type,d,k,f};}
+function overwriteLocations(policy,canonical,locations){
+ for(const loc of locations){const p=parseLoc(loc);if(p.type==='field')getRule(policy,p.d,p.k)[p.f]=getRule(canonical,p.d,p.k)[p.f];else if(p.type==='order'){const order=canonical[p.d].map(r=>r.key);policy[p.d].sort((a,b)=>order.indexOf(a.key)-order.indexOf(b.key));}}
+}
+function locationValue(policy,loc){const p=parseLoc(loc);return p.type==='field'?getRule(policy,p.d,p.k)[p.f]:serializeOrder(policy,p.d);}
+function scoreAttempt(attempt,policy,touched=new Set()){
+ const can=allLocations(attempt.canonical),got=allLocations(policy);let correct=0,total=0;
+ for(const k of Object.keys(can)){total++;if(can[k]===got[k])correct++;}
+ const repaired=attempt.defectiveLocations.filter(k=>can[k]===got[k]);
+ const unnecessary=[...touched].filter(k=>!attempt.defectiveLocations.includes(k));
+ const rel=relationships(attempt.profile,policy),risks=criticalRisks(policy);
+ return {correct,total,pct:Math.round(correct/total*100),repaired,totalDefects:attempt.defectiveLocations.length,unnecessary,relations:rel,relationPass:rel.filter(x=>x.ok).length,risks};
+}
+window.FW_DIAG_MODEL={DEVICES,OPTIONS,PURPOSE,PROFILES,MUTATIONS,clonePolicy,getRule,locField,locOrder,serializeOrder,allLocations,evaluatePacket,testsFor,relationships,criticalRisks,createAttempt,locationValue,scoreAttempt,mutationAllowed,diffLocations};
+})();
+</script>
+
+<script>
+(function(){
+'use strict';
+const M=window.FW_DIAG_MODEL,$=id=>document.getElementById(id);
+let profileIndex=0,difficulty='standard',seed=Date.now().toString(36),attempt=null,current=null,study=false,submitted=false,started=Date.now(),touched=new Set(),changeEvents=[];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function opt(type,selected){return M.OPTIONS[type].map(v=>`<option value="${esc(v)}"${v===selected?' selected':''}>${esc(v||'Select…')}</option>`).join('');}
+function labelFor(key){return M.PURPOSE[key]||[key,'Policy rule'];}
+function renderProfileOptions(){$('profileSelect').innerHTML=M.PROFILES.map((p,i)=>`<option value="${i}"${i===profileIndex?' selected':''}>${esc(p.label)}</option>`).join('');}
+function renderScenario(){
+ const p=attempt.profile;$('profileLabel').textContent=p.label;$('difficultyLabel').textContent=difficulty==='advanced'?'Advanced':'Standard';$('defectMeta').textContent=study?`${attempt.mutations.length} seeded`:'Hidden in Exam';
+ $('scenarioTitle').textContent=p.title;$('scenarioSummary').textContent=p.summary;$('scenarioId').textContent=`${p.id} • DIAG`;
+ $('facts').innerHTML=p.facts.map(([k,v])=>`<div class="fact"><small>${esc(k)}</small><strong>${esc(v)}</strong></div>`).join('');
+ $('requirements').innerHTML=p.requirements.map(x=>`<li>${esc(x)}</li>`).join('');
+ $('ticketSymptoms').innerHTML=attempt.symptoms.map(s=>`<li>${esc(s)}</li>`).join('');
+ $('ticketNote').textContent=study?`Study cue: ${attempt.mutations.length} controlled defects were seeded. Use REQ → FLOW → MATCH → ORDER → FIX → TEST; exact locations remain hidden.`:'Symptoms describe observed behavior. Defect count and locations are withheld in Exam behavior.';
+ $('studyPanel').classList.toggle('show',study);$('studyBtn').textContent=`Study Mode: ${study?'On':'Off'}`;$('studyBtn').setAttribute('aria-pressed',String(study));
+}
+function renderFirewalls(){
+ $('firewalls').innerHTML=M.DEVICES.map(d=>{
+  const rows=current[d.id]||[];
+  return `<article class="firewall-card"><div class="device-head"><div class="device-title"><div class="device-icon">FW</div><div><strong>${esc(d.firewall)} — ${esc(d.name)}</strong><small>Protects ${esc(d.server)} • ${esc(d.role)}${study?' • '+esc(d.port):''}</small></div></div><span class="scenario-badge">${rows.length} rules</span></div>
+  <div class="rule-scroll"><table class="rule-table"><caption style="position:absolute;left:-9999px">Ordered policy for ${esc(d.firewall)}</caption><thead><tr><th>Purpose / order</th><th>Source</th><th>Destination</th><th>Service</th><th>Action</th><th>Logging</th><th>Order</th></tr></thead><tbody>
+  ${rows.map((r,i)=>renderRule(d,r,i,rows.length)).join('')}</tbody></table></div></article>`;
+ }).join('');
+ document.querySelectorAll('[data-field]').forEach(el=>el.addEventListener('change',onField));
+ document.querySelectorAll('[data-move]').forEach(el=>el.addEventListener('click',moveRule));
+ updateEditMarkers();
+}
+function renderRule(d,r,i,total){
+ const lab=labelFor(r.key);
+ const cell=f=>`<td data-cell="${d.id}:${r.key}:${f}"><select data-field="${f}" data-device="${d.id}" data-key="${r.key}" aria-label="${esc(lab[0]+' '+f)}" ${submitted?'disabled':''}>${opt(f,r[f])}</select></td>`;
+ return `<tr data-row="${d.id}:${r.key}"><td class="purpose"><strong>${esc(lab[0])}</strong><small>${esc(lab[1])}</small></td>${cell('source')}${cell('destination')}${cell('service')}${cell('action')}${cell('logging')}<td><div class="move-controls"><button class="btn btn-small" data-move="up" data-device="${d.id}" data-index="${i}" ${submitted||i===0?'disabled':''}>↑ Up</button><button class="btn btn-small" data-move="down" data-device="${d.id}" data-index="${i}" ${submitted||i===total-1?'disabled':''}>↓ Down</button></div></td></tr>`;
+}
+function onField(e){
+ if(submitted)return;const d=e.target.dataset.device,k=e.target.dataset.key,f=e.target.dataset.field,loc=M.locField(d,k,f),r=M.getRule(current,d,k),before=r[f];r[f]=e.target.value;
+ touched.add(loc);changeEvents.push({loc,before,after:r[f]});updateProgress();updateEditMarkers();
+}
+function moveRule(e){
+ if(submitted)return;const d=e.currentTarget.dataset.device,i=Number(e.currentTarget.dataset.index),dir=e.currentTarget.dataset.move,j=dir==='up'?i-1:i+1;if(j<0||j>=current[d].length)return;
+ const loc=M.locOrder(d),before=M.serializeOrder(current,d);[current[d][i],current[d][j]]=[current[d][j],current[d][i]];touched.add(loc);changeEvents.push({loc,before,after:M.serializeOrder(current,d)});renderFirewalls();updateProgress();
+}
+function updateEditMarkers(){
+ document.querySelectorAll('[data-cell]').forEach(td=>{const [d,k,f]=td.dataset.cell.split(':');td.classList.toggle('edited',touched.has(M.locField(d,k,f)));});
+ for(const d of M.DEVICES){const rowTouched=touched.has(M.locOrder(d.id));document.querySelectorAll(`[data-row^="${d.id}:"]`).forEach(tr=>tr.classList.toggle('edited',rowTouched));}
+}
+function renderTests(){
+ const tests=M.testsFor(attempt.profile);$('testSelect').innerHTML=tests.map(t=>`<option value="${esc(t.id)}">${esc(t.label)}</option>`).join('');
+}
+function runTest(){
+ const test=M.testsFor(attempt.profile).find(t=>t.id===$('testSelect').value);if(!test)return;const res=M.evaluatePacket(current[test.device]||[],test);
+ const matched=res.rule?`${labelFor(res.rule.key)[0]} — ${res.rule.source} → ${res.rule.destination} → ${res.rule.service} → ${res.rule.action}`:'No explicit match; implicit DENY';
+ $('testResults').innerHTML=`<div class="test-result ${res.action==='PERMIT'?'good':'bad'}"><strong>Observed result: ${esc(res.action==='PERMIT'?'ALLOWED':'BLOCKED')}</strong><small>${esc(test.label)}<br>First matched rule: ${esc(matched)}${submitted?`<br>Required outcome: ${esc(test.expect)}`:''}</small></div>`;
+ highlightPath(res.action);
+}
+function highlightPath(action){['nodeSource','nodeFirewall','nodeTarget'].forEach(id=>{$(id).classList.remove('active','allow','block');$(id).classList.add(action==='PERMIT'?'allow':'block');});}
+function updateProgress(){
+ const count=touched.size;$('editCount').textContent=count;$('changedCounter').textContent=count;$('progressFill').style.width=`${Math.min(100,count*10)}%`;
+}
+function begin(){
+ difficulty=$('difficultySelect').value||difficulty;profileIndex=Number($('profileSelect').value||0);seed=`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`;
+ attempt=M.createAttempt(M.PROFILES[profileIndex],difficulty,seed);current=M.clonePolicy({answers:attempt.starting});touched=new Set();changeEvents=[];submitted=false;started=Date.now();
+ renderScenario();renderFirewalls();renderTests();$('results').classList.remove('show');$('policyState').textContent='In progress';$('testResults').innerHTML='<div class="test-result"><strong>No test run yet</strong><small>Select a path and reproduce the symptom.</small></div>';updateProgress();window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetSame(){attempt=M.createAttempt(M.PROFILES[profileIndex],difficulty,seed);current=M.clonePolicy({answers:attempt.starting});touched=new Set();changeEvents=[];submitted=false;started=Date.now();renderScenario();renderFirewalls();renderTests();$('results').classList.remove('show');updateProgress();}
+function formatLoc(loc){
+ const p=loc.split(':');if(p[0]==='order')return `${p[1].toUpperCase()} rule order`;return `${p[1].toUpperCase()} • ${labelFor(p[2])[0]} • ${p[3]}`;
+}
+function submit(){
+ if(submitted)return;submitted=true;const s=M.scoreAttempt(attempt,current,touched),clean=s.repaired.length===s.totalDefects&&s.relationPass===10&&!s.risks.length&&s.unnecessary.length===0;
+ $('policyScore').textContent=`${s.pct}%`;$('repairScore').textContent=`${s.repaired.length}/${s.totalDefects}`;$('relationScore').textContent=`${s.relationPass}/10`;$('noiseScore').textContent=s.unnecessary.length;$('riskScore').textContent=s.risks.length?'PRESENT':'CLEAR';
+ $('policyScore').className=s.pct>=95?'score-good':s.pct>=85?'score-mid':'score-low';$('repairScore').className=s.repaired.length===s.totalDefects?'score-good':'score-low';$('relationScore').className=s.relationPass===10?'score-good':'score-mid';$('noiseScore').className=s.unnecessary.length===0?'score-good':'score-mid';$('riskScore').className=s.risks.length?'score-low':'score-good';
+ $('headline').textContent=clean?'Clean diagnostic repair':s.risks.length?'Critical exposure remains':s.repaired.length===s.totalDefects&&s.relationPass===10?'Secure but noisy repair':'Repair is incomplete';
+ $('criticalBox').innerHTML=s.risks.length?`<div class="critical"><strong>Critical-risk gate:</strong> ${esc(s.risks.join(' '))}</div>`:'';
+ $('resultMessage').textContent=clean?'All seeded defects were repaired, all system relationships pass, and you avoided changing settings that were already correct.':s.risks.length?'A high field score cannot override a remaining critical exposure. Repair the scope/order issue and retest.':s.repaired.length===s.totalDefects&&s.relationPass===10?`The policy is secure, but ${s.unnecessary.length} originally-correct location(s) were changed. Review repair discipline and prefer the minimum safe change.`:'Compare the observed traffic with the business requirement, then locate the first matching rule and repair the remaining mismatch.';
+ $('repairList').innerHTML=attempt.mutations.map(m=>{const fixed=m.changes.every(loc=>M.locationValue(current,loc)===M.locationValue(attempt.canonical,loc));return `<div class="repair ${fixed?'good':'bad'}"><strong>${fixed?'✓':'✕'} ${esc(m.label)}</strong><small>${fixed?'Repaired to canonical secure state.':'Still differs from the required secure state.'} ${esc(m.info.symptom)}</small></div>`;}).join('')+(s.unnecessary.length?`<div class="repair noisy"><strong>△ Unnecessary edits detected</strong><small>${esc(s.unnecessary.map(formatLoc).join(' • '))}</small></div>`:'');
+ $('relationshipList').innerHTML=s.relations.map(r=>`<div class="repair ${r.ok?'good':'bad'}"><strong>${r.ok?'✓':'✕'} ${esc(r.label)}</strong><small>${esc(r.detail)}</small></div>`).join('');
+ renderChangeLog(s);markPostSubmit();document.querySelectorAll('.rule-table select,.rule-table button').forEach(el=>el.disabled=true);$('results').classList.add('show');$('policyState').textContent=s.risks.length?'Critical risk remains':s.relationPass===10?'System relationships pass':'Relationship gaps remain';renderTests();$('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderChangeLog(score){
+ const canonical=M.allLocations(attempt.canonical),starting=M.allLocations(attempt.starting),final=M.allLocations(current),keys=[...new Set([...attempt.defectiveLocations,...touched])];
+ if(!keys.length){$('changeLog').innerHTML='<p>No locations changed.</p>';return;}
+ $('changeLog').innerHTML=`<div style="overflow:auto"><table class="change-table"><thead><tr><th>Location</th><th>Starting</th><th>Final</th><th>Required</th><th>Classification</th></tr></thead><tbody>${keys.map(k=>{const needed=attempt.defectiveLocations.includes(k),ok=final[k]===canonical[k],cls=needed?'Required repair':'Originally correct';return `<tr><td>${esc(formatLoc(k))}</td><td>${esc(starting[k])}</td><td>${esc(final[k])}</td><td>${esc(canonical[k])}</td><td>${esc(cls+(ok?' • correct':' • unresolved'))}</td></tr>`;}).join('')}</tbody></table></div>`;
+}
+function markPostSubmit(){
+ document.querySelectorAll('[data-cell]').forEach(td=>{const [d,k,f]=td.dataset.cell.split(':'),loc=M.locField(d,k,f),ok=M.locationValue(current,loc)===M.locationValue(attempt.canonical,loc);td.classList.add(ok?'post-correct':'post-bad');});
+}
+function tick(){const sec=Math.floor((Date.now()-started)/1000);$('timer').textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;}
+renderProfileOptions();$('profileSelect').addEventListener('change',()=>{profileIndex=Number($('profileSelect').value);begin();});$('difficultySelect').addEventListener('change',()=>{difficulty=$('difficultySelect').value;begin();});$('newBtn').addEventListener('click',begin);$('studyBtn').addEventListener('click',()=>{study=!study;renderScenario();renderFirewalls();});$('submitBtn').addEventListener('click',submit);$('testBtn').addEventListener('click',runTest);
+begin();setInterval(tick,1000);tick();
+})();
+</script>
+</body>
+</html>
