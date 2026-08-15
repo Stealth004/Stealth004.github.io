@@ -370,11 +370,12 @@ function f1Score(selected, expected) {
   return (2 * precision * recall) / (precision + recall);
 }
 
-function timelineScore(selected, expected) {
+function timelineScore(selected, expected, allowedRelevant = expected) {
   if (!selected?.length) return 0;
   const uniqueSelected = [...new Set(selected)];
   const position = new Map(uniqueSelected.map((id, i) => [id, i]));
   const expectedSet = new Set(expected);
+  const allowedSet = new Set(allowedRelevant);
   let pairTotal = 0;
   let pairCorrect = 0;
   for (let i = 0; i < expected.length; i++) {
@@ -386,11 +387,12 @@ function timelineScore(selected, expected) {
     }
   }
   const expectedSelected = uniqueSelected.filter((id) => expectedSet.has(id)).length;
+  const noiseExtras = uniqueSelected.filter((id) => !allowedSet.has(id)).length;
   const coverage = expectedSelected / expected.length;
-  const precision = expectedSelected / uniqueSelected.length;
+  const precision = expectedSelected / (expectedSelected + noiseExtras);
   const order = pairTotal ? pairCorrect / pairTotal : 0;
-  // A correct incident timeline is both ordered and minimal. Extra/noise events now
-  // reduce precision instead of receiving full chronology credit.
+  // A condensed key timeline may legitimately include additional evidence-bearing
+  // events. Penalize actual noise, not defensible corroborating evidence.
   return Math.max(0, Math.min(1, coverage * precision * order));
 }
 
@@ -414,9 +416,9 @@ export function evaluateRelationships(scenarioId, attempt) {
   const evidenceSet = new Set(a.evidenceIds || []);
   const eventById = new Map(s.events.map((e) => [e.id, e]));
   const selectedSourceTypes = new Set([...evidenceSet].map((id) => eventById.get(id)?.sourceType).filter(Boolean));
-  const confirmedExpected = Object.entries(s.answers.scope).filter(([,v]) => v === "confirmed").map(([k]) => k);
-  const confirmedCorrect = confirmedExpected.every((k) => a.scope?.[k] === "confirmed");
-  const tl = timelineScore(a.timelineIds || [], s.answers.timelineIds);
+  const scopeEntries = Object.entries(s.answers.scope);
+  const scopeConsistent = scopeEntries.every(([entity, expectedState]) => a.scope?.[entity] === expectedState);
+  const tl = timelineScore(a.timelineIds || [], s.answers.timelineIds, s.answers.evidenceIds);
   const cmeta = containmentMeta(s, a.containment);
   const relationships = [
     {id:"chronology", label:"Canonical incident chronology reconstructed", pass: tl === 1},
@@ -425,7 +427,7 @@ export function evaluateRelationships(scenarioId, attempt) {
     {id:"indicator", label:"Primary malicious indicator identified", pass:a.classification?.indicator === s.answers.classification.indicator},
     {id:"attack", label:"Incident/attack class matches the evidence", pass:a.classification?.attackType === s.answers.classification.attackType},
     {id:"success", label:"Attempted/blocked/successful state interpreted correctly", pass:a.classification?.successState === s.answers.classification.successState},
-    {id:"scope", label:"Confirmed affected entities scoped correctly", pass:confirmedCorrect},
+    {id:"scope", label:"Affected, suspicious, and clean entities scoped consistently", pass:scopeConsistent},
     {id:"noise", label:"Evidence selection is not dominated by benign noise", pass:f1Score(a.evidenceIds, s.answers.evidenceIds) >= 0.75},
     {id:"containment", label:"First containment action targets the active risk", pass:a.containment === s.answers.containment},
     {id:"evidence", label:"Response preserves evidence", pass:Boolean(cmeta.preservesEvidence)}
@@ -436,7 +438,7 @@ export function evaluateRelationships(scenarioId, attempt) {
 export function scoreAttempt(scenarioId, attempt, difficulty = "standard") {
   const s = getScenario(scenarioId);
   const evidence = f1Score(attempt?.evidenceIds, s.answers.evidenceIds);
-  const timeline = timelineScore(attempt?.timelineIds, s.answers.timelineIds);
+  const timeline = timelineScore(attempt?.timelineIds, s.answers.timelineIds, s.answers.evidenceIds);
   const classification = classificationScore(attempt?.classification, s.answers.classification);
   const scope = scopeScore(attempt?.scope, s.answers.scope);
   const containment = attempt?.containment === s.answers.containment ? 1 : 0;
@@ -457,8 +459,18 @@ export function scoreAttempt(scenarioId, attempt, difficulty = "standard") {
     state === "confirmed" && attempt?.scope?.[entity] === "clean"
   );
   const criticalFailure = Boolean(cmeta.critical || criticalScopeFailure);
-  const secure = score >= 80 && !criticalFailure;
-  const rating = criticalFailure ? "Critical reasoning failure" : score >= 90 ? "Excellent investigation" : score >= 80 ? "Secure / competent" : score >= 65 ? "Developing" : "Needs remediation";
+  const allRelationshipsPass = relationships.every((r) => r.pass);
+  const coreRelationshipPass = ["scope","containment","evidence"].every((id) => relationships.find((r) => r.id === id)?.pass);
+  const secure = score >= 80 && !criticalFailure && coreRelationshipPass;
+  const rating = criticalFailure
+    ? "Critical reasoning failure"
+    : score >= 90 && allRelationshipsPass
+      ? "Excellent investigation"
+      : secure
+        ? "Secure / competent"
+        : score >= 65
+          ? "Developing / review required"
+          : "Needs remediation";
 
   return { scenarioId, difficulty, score, metrics, relationships, criticalFailure, secure, rating };
 }
