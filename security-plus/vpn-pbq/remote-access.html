@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SecureLink Remote Access is an original CompTIA Security+ SY0-701 TLS VPN PBQ practice lab covering MFA, certificates, full and split tunneling, DNS, routes, and least privilege.">
+  <title>SecureLink Remote Access VPN PBQ — Security+ SY0-701</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050d14;
+      --panel: #0b1a25;
+      --panel-2: #102636;
+      --panel-3: #07151f;
+      --line: #29485b;
+      --line-strong: #3d6980;
+      --text: #eff9ff;
+      --muted: #9db5c3;
+      --cyan: #42d8ff;
+      --teal: #31e0bd;
+      --violet: #b29aff;
+      --ok: #46d7a2;
+      --warn: #f3c95f;
+      --bad: #ff748a;
+      --shadow: 0 18px 54px rgba(0, 0, 0, .34);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% -5%, rgba(66, 216, 255, .15), transparent 31rem),
+        radial-gradient(circle at 95% 5%, rgba(178, 154, 255, .1), transparent 28rem),
+        linear-gradient(180deg, #040b11, var(--bg));
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, select, input { font: inherit; }
+    button { cursor: pointer; }
+    a { color: var(--cyan); }
+    h1, h2, h3, p { margin-top: 0; }
+    .shell { width: min(1390px, calc(100% - 28px)); margin: 0 auto; padding: 24px 0 52px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: clamp(22px, 4vw, 40px);
+      background: linear-gradient(145deg, rgba(16, 38, 54, .98), rgba(6, 20, 30, .98));
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 22rem;
+      height: 22rem;
+      right: -8rem;
+      bottom: -15rem;
+      border-radius: 50%;
+      background: rgba(49, 224, 189, .08);
+      pointer-events: none;
+    }
+    .eyebrow, .screen-kicker { color: var(--teal); font-size: .78rem; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin-bottom: 10px; font-size: clamp(2.1rem, 5vw, 3.75rem); line-height: 1.02; }
+    .hero-copy { max-width: 900px; margin: 0; color: var(--muted); }
+    .hero-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 19px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: #102739;
+      color: var(--text);
+      font-weight: 790;
+    }
+    .btn:hover { border-color: var(--cyan); }
+    .btn-primary { border-color: transparent; background: linear-gradient(135deg, var(--cyan), #169ac8); color: #00141d; }
+    .btn-violet { background: #251f42; border-color: #665a92; }
+    .btn-danger { background: #381b27; border-color: #7a3446; }
+    .btn:disabled { cursor: not-allowed; opacity: .42; }
+    button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid rgba(66, 216, 255, .38); outline-offset: 3px; }
+    .meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
+    .meta-card { border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px; background: rgba(3, 14, 22, .55); }
+    .meta-card small { display: block; color: var(--muted); }
+    .meta-card strong { display: block; margin-top: 3px; overflow-wrap: anywhere; }
+    .progress-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin: 16px 0 22px; }
+    .progress { height: 10px; overflow: hidden; border: 1px solid #244558; border-radius: 999px; background: #0a1b27; }
+    .progress > div { width: 0; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--teal)); transition: width .2s ease; }
+    .progress-count { color: var(--muted); font-weight: 780; white-space: nowrap; }
+    .workspace { display: grid; grid-template-columns: 246px minmax(0, 1fr); gap: 18px; align-items: start; }
+    .stepper { position: sticky; top: 14px; border: 1px solid var(--line); border-radius: 18px; padding: 11px; background: rgba(8, 24, 35, .96); box-shadow: 0 10px 34px rgba(0, 0, 0, .22); }
+    .step-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 9px;
+      align-items: center;
+      min-height: 48px;
+      margin: 2px 0;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 7px 8px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+    }
+    .step-button:hover { background: #102435; color: var(--text); }
+    .step-button[aria-current="step"] { border-color: #3b738c; background: #0f3041; color: var(--text); }
+    .step-button.complete .step-number { border-color: var(--ok); color: var(--ok); }
+    .step-button:disabled { cursor: not-allowed; opacity: .45; }
+    .step-number { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--cyan); font-weight: 850; }
+    .step-label strong, .step-label small { display: block; }
+    .step-label strong { font-size: .88rem; }
+    .step-label small { color: inherit; font-size: .73rem; }
+    .stage { min-width: 0; }
+    .screen { display: none; border: 1px solid var(--line); border-radius: 22px; padding: clamp(17px, 3vw, 28px); background: linear-gradient(145deg, rgba(13, 31, 44, .98), rgba(7, 22, 32, .98)); box-shadow: 0 12px 38px rgba(0, 0, 0, .22); }
+    .screen.active { display: block; }
+    .screen-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+    .screen-head h2 { margin-bottom: 0; }
+    .screen-head p { max-width: 790px; margin: 5px 0 0; color: var(--muted); }
+    .screen-badge { flex: 0 0 auto; border: 1px solid #3e6a80; border-radius: 999px; padding: 5px 9px; color: var(--teal); font-size: .78rem; font-weight: 820; }
+    .notice { border-left: 4px solid var(--cyan); border-radius: 10px; padding: 12px 14px; background: #0a2230; color: #d8edf8; }
+    .notice.warn { border-left-color: var(--warn); background: #2a2212; }
+    .notice.bad { border-left-color: var(--bad); background: #321721; }
+    .notice.good { border-left-color: var(--ok); background: #0a2a22; }
+    .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin: 18px 0; }
+    .fact { border: 1px solid var(--line); border-radius: 13px; padding: 11px; background: var(--panel-3); }
+    .fact small { display: block; color: var(--muted); }
+    .fact strong { display: block; margin-top: 3px; }
+    .requirements { margin: 14px 0 0; padding-left: 22px; }
+    .requirements li { margin: 7px 0; }
+    .mental-flow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .flow-card { position: relative; min-height: 100px; border: 1px solid var(--line); border-radius: 13px; padding: 10px; background: #081824; }
+    .flow-card:not(:last-child)::after { content: "›"; position: absolute; right: -9px; top: 35px; z-index: 2; color: var(--cyan); font-size: 1.4rem; font-weight: 900; }
+    .flow-card small { color: var(--teal); font-weight: 850; }
+    .flow-card strong { display: block; margin: 2px 0; font-size: .9rem; }
+    .flow-card span { color: var(--muted); font-size: .75rem; }
+    .topology-frame { overflow-x: auto; border: 1px solid var(--line); border-radius: 17px; background: #06141e; }
+    .topology { display: block; width: 100%; min-width: 960px; height: auto; }
+    .topology text { fill: var(--text); font-family: inherit; }
+    .topology .zone { fill: #081b28; stroke: #294c61; stroke-width: 1.5; stroke-dasharray: 7 6; }
+    .topology .zone-label { fill: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: 1.4px; }
+    .topology .node { fill: #102b3b; stroke: #477185; stroke-width: 2; }
+    .topology .node-bar { fill: #173e51; }
+    .topology .sub { fill: var(--muted); font-size: 12px; }
+    .topology .micro { fill: #87a6b7; font-size: 10px; }
+    .topology .path { fill: none; stroke: #5c7888; stroke-width: 3; marker-end: url(#arrow); }
+    .topology .candidate { stroke: var(--violet); stroke-width: 9; stroke-dasharray: 18 11; opacity: .55; }
+    .topology .pass { stroke: var(--ok); opacity: .96; animation: route-flow 1.2s linear infinite; }
+    .topology .fail { stroke: var(--bad); opacity: .96; }
+    @keyframes route-flow { to { stroke-dashoffset: -29; } }
+    .topology-legend { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 9px; color: var(--muted); font-size: .82rem; }
+    .legend-line { display: inline-block; width: 28px; margin-right: 5px; border-top: 4px solid #5c7888; vertical-align: middle; }
+    .legend-line.candidate { border-color: var(--violet); border-top-style: dashed; }
+    .legend-line.identity { border-color: var(--teal); }
+    .topology-notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 13px; }
+    .topology-note { border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: #091a26; }
+    .topology-note strong { display: block; }
+    .topology-note span { color: var(--muted); font-size: .85rem; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+    .field { min-width: 0; display: grid; gap: 6px; border: 1px solid transparent; border-radius: 13px; padding: 9px; }
+    .field label { font-weight: 790; }
+    .field label small { display: block; color: var(--muted); font-weight: 500; }
+    select { width: 100%; min-height: 46px; border: 1px solid #396078; border-radius: 11px; padding: 9px 11px; background: #061722; color: var(--text); }
+    select:disabled { opacity: .75; }
+    .field.correct { border-color: rgba(70, 215, 162, .42); background: rgba(70, 215, 162, .045); }
+    .field.incorrect { border-color: rgba(255, 116, 138, .45); background: rgba(255, 116, 138, .05); }
+    .field-note { display: none; font-size: .78rem; }
+    .submitted .field-note { display: block; }
+    .field.correct .field-note { color: #a9f3d5; }
+    .field.incorrect .field-note { color: #ffc4cf; }
+    .training { margin-top: 16px; border: 1px solid #4b4770; border-radius: 15px; padding: 12px 14px; background: #17172a; }
+    .training summary { cursor: pointer; color: #d9ceff; font-weight: 820; }
+    .training p { margin: 9px 0 0; color: #c3bddb; }
+    .exam-mode:not(.submitted) .training, .exam-mode:not(.submitted) .training-cue { display: none !important; }
+    .validation-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, .78fr); gap: 16px; align-items: start; }
+    .test-console { position: sticky; top: 14px; border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: #06141e; }
+    .test-console h3 { margin-bottom: 4px; }
+    .test-console p { color: var(--muted); font-size: .85rem; }
+    .test-output { min-height: 218px; margin: 12px 0; border: 1px solid #29485a; border-radius: 11px; padding: 12px; background: #030d13; color: #a9bfcc; font: .79rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; }
+    .test-output.good { border-color: rgba(70, 215, 162, .65); color: #b8f5dd; }
+    .test-output.bad { border-color: rgba(255, 116, 138, .65); color: #ffc5cf; }
+    .confidence { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; margin: 18px auto; max-width: 760px; }
+    .confidence label { display: grid; place-items: center; gap: 5px; min-height: 78px; border: 1px solid var(--line); border-radius: 13px; background: #081a26; cursor: pointer; }
+    .confidence label:has(input:checked) { border-color: var(--cyan); background: #0d3041; }
+    .confidence span { font-size: .78rem; color: var(--muted); }
+    .submit-panel { text-align: center; border: 1px solid var(--line); border-radius: 18px; padding: clamp(20px, 5vw, 44px); background: #071923; }
+    .submit-panel p { color: var(--muted); }
+    .submit-meta { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 17px 0; }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: #081a26; color: var(--muted); font-size: .83rem; }
+    .results-empty { border: 1px dashed var(--line-strong); border-radius: 16px; padding: 24px; color: var(--muted); text-align: center; }
+    .results { display: none; }
+    .results.show { display: block; }
+    .score-hero { display: grid; grid-template-columns: 150px 1fr; gap: 19px; align-items: center; }
+    .score-ring { display: grid; place-items: center; width: 142px; height: 142px; border-radius: 50%; background: conic-gradient(var(--ok) var(--score-angle, 0deg), #183141 0); box-shadow: inset 0 0 0 14px #091923; }
+    .score-ring strong { font-size: 2rem; }
+    .score-copy p { color: var(--muted); }
+    .category-results { display: grid; gap: 10px; margin-top: 20px; }
+    .category-row { display: grid; grid-template-columns: minmax(155px, 1fr) 2fr 74px; align-items: center; gap: 10px; }
+    .category-row strong { font-size: .88rem; }
+    .bar { height: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; background: #081822; }
+    .bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--teal)); }
+    .category-row em { color: var(--muted); font-style: normal; text-align: right; }
+    .remediation { display: grid; gap: 9px; margin-top: 20px; }
+    .remediation-item { border-left: 4px solid var(--bad); border-radius: 10px; padding: 11px 13px; background: #25141c; }
+    .remediation-item.good { border-left-color: var(--ok); background: #0a261e; }
+    .remediation-item strong { display: block; }
+    .remediation-item span { color: #d8c7cd; font-size: .86rem; }
+    .screen-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; }
+    .screen-nav .right { display: flex; gap: 9px; }
+    .footer { padding-top: 30px; color: var(--muted); font-size: .83rem; text-align: center; }
+    dialog { width: min(470px, calc(100% - 28px)); border: 1px solid var(--line-strong); border-radius: 18px; padding: 0; background: #0b1b27; color: var(--text); box-shadow: var(--shadow); }
+    dialog::backdrop { background: rgba(1, 7, 11, .78); backdrop-filter: blur(4px); }
+    .dialog-body { padding: 22px; }
+    .dialog-body p { color: var(--muted); }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    @media (max-width: 1100px) {
+      .mental-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .flow-card::after { display: none; }
+      .validation-layout { grid-template-columns: 1fr; }
+      .test-console { position: static; }
+    }
+    @media (max-width: 880px) {
+      .workspace { grid-template-columns: 1fr; }
+      .stepper { position: static; display: flex; overflow-x: auto; padding: 8px; }
+      .step-button { flex: 0 0 147px; }
+    }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 16px, 1390px); padding-top: 8px; }
+      .hero, .screen { border-radius: 18px; }
+      .meta, .form-grid, .facts, .topology-notes { grid-template-columns: 1fr; }
+      .mental-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .screen-head { align-items: flex-start; flex-direction: column; }
+      .confidence { grid-template-columns: 1fr; }
+      .confidence label { grid-template-columns: auto 1fr; justify-content: start; min-height: 54px; padding: 10px 14px; }
+      .score-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+      .category-row { grid-template-columns: 1fr 62px; }
+      .category-row .bar { grid-column: 1 / -1; grid-row: 2; }
+      .screen-nav { align-items: stretch; flex-direction: column; }
+      .screen-nav .right { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell" id="appShell">
+    <header class="hero">
+      <div class="eyebrow">SecureLink transfer lab · Security+ SY0-701</div>
+      <h1>Remote Access TLS VPN PBQ</h1>
+      <p class="hero-copy">Translate a remote-worker requirement into the right TLS access method, certificate trust, MFA, route and DNS policy, authorization scope, and validation evidence. The mission changes; the reasoning chain stays stable.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="modeBtn" type="button" aria-pressed="false">Mode: Learn</button>
+        <button class="btn btn-violet" id="newBtn" type="button">New mission</button>
+        <button class="btn btn-danger" id="resetBtn" type="button">Reset attempt</button>
+        <a class="btn" href="./index.html">Site-to-site IPsec Core</a>
+      </div>
+      <div class="meta" aria-label="Attempt summary">
+        <div class="meta-card"><small>Mission</small><strong id="missionMeta">TLS-701-A</strong></div>
+        <div class="meta-card"><small>Access context</small><strong id="contextMeta">Remote employee</strong></div>
+        <div class="meta-card"><small>Decisions</small><strong>30 weighted controls</strong></div>
+        <div class="meta-card"><small>Mode</small><strong id="modeMeta">Learn</strong></div>
+      </div>
+    </header>
+
+    <div class="progress-row" aria-label="Configuration progress">
+      <div class="progress"><div id="progressBar"></div></div>
+      <div class="progress-count" id="progressCount">0 / 30 answered</div>
+    </div>
+
+    <div class="workspace">
+      <nav class="stepper" id="stepper" aria-label="PBQ steps"></nav>
+      <section class="stage">
+        <article class="screen active" data-screen="0">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 0 · Requirement</div><h2 id="missionTitle">Mission brief</h2><p id="missionTask"></p></div>
+            <div class="screen-badge" id="missionId">TLS-701-A</div>
+          </div>
+          <div class="notice"><strong>Your task:</strong> build the smallest remote-access solution that satisfies every stated business and security requirement. Do not assume that an established encrypted session grants access.</div>
+          <div class="facts" id="missionFacts"></div>
+          <h3>Requirements</h3>
+          <ul class="requirements" id="requirements"></ul>
+          <div class="mental-flow" aria-label="Reusable reasoning flow">
+            <div class="flow-card"><small>01</small><strong>Requirement</strong><span>User, device, resource, constraint</span></div>
+            <div class="flow-card"><small>02</small><strong>Architecture</strong><span>Client tunnel or portal</span></div>
+            <div class="flow-card"><small>03</small><strong>Trust + MFA</strong><span>Gateway identity and user identity</span></div>
+            <div class="flow-card"><small>04</small><strong>Traffic</strong><span>Routes, DNS, and egress</span></div>
+            <div class="flow-card"><small>05</small><strong>Authorization</strong><span>Least-privilege resources</span></div>
+            <div class="flow-card"><small>06</small><strong>Validate</strong><span>TLS → identity → path → app</span></div>
+          </div>
+          <details class="training">
+            <summary>Learn mode — extract the constraints before touching controls</summary>
+            <p>Underline the scope words: <em>one application</em>, <em>all traffic</em>, <em>only corporate traffic</em>, <em>managed</em>, or <em>unmanaged</em>. Those phrases decide architecture, routing, and authorization.</p>
+          </details>
+          <div class="screen-nav"><span></span><div class="right"><button class="btn btn-primary next" type="button">Inspect topology</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="1">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 1 · Trust boundary</div><h2>Inspect the topology</h2><p>The diagram shows components and candidate paths, not a preselected answer. Use the mission constraints to decide which path should carry which traffic.</p></div>
+            <div class="screen-badge">Topology</div>
+          </div>
+          <div class="topology-frame">
+            <svg class="topology" viewBox="0 0 1120 510" role="img" aria-labelledby="topologyTitle topologyDesc">
+              <title id="topologyTitle">Remote-access TLS VPN topology</title>
+              <desc id="topologyDesc">A remote endpoint crosses an untrusted network to a TLS gateway or portal, then uses identity, DNS, application, and internet services according to the selected policy.</desc>
+              <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5c7888"/></marker></defs>
+              <rect class="zone" x="24" y="52" width="248" height="378" rx="18"/><text class="zone-label" x="44" y="82">REMOTE / UNTRUSTED</text>
+              <rect class="zone" x="320" y="52" width="248" height="378" rx="18"/><text class="zone-label" x="340" y="82">SECURITY EDGE</text>
+              <rect class="zone" x="616" y="52" width="480" height="378" rx="18"/><text class="zone-label" x="636" y="82">ORGANIZATION / SERVICES</text>
+              <path id="candidatePath" class="path candidate" d="M218 215 C310 215 326 215 390 215"/>
+              <path id="identityPath" class="path" d="M500 184 C610 150 642 145 700 145"/>
+              <path id="dnsPath" class="path" d="M500 218 C620 218 643 255 700 255"/>
+              <path id="appPath" class="path" d="M500 255 C620 300 644 365 700 365"/>
+              <path id="orgInternetPath" class="path" d="M486 282 C580 425 858 455 945 368"/>
+              <path id="localInternetPath" class="path" d="M174 275 C160 390 710 472 945 368"/>
+              <g transform="translate(66 157)"><rect class="node" width="152" height="118" rx="15"/><rect class="node-bar" width="152" height="30" rx="15"/><text x="14" y="21" font-size="13" font-weight="800" id="endpointLabel">Remote laptop</text><text class="sub" x="14" y="58" id="endpointSub">Managed device</text><text class="micro" x="14" y="80">Hotel / public network</text><text class="micro" x="14" y="99" id="endpointMechanismLabel">Candidate endpoint</text></g>
+              <g transform="translate(365 157)"><rect class="node" width="152" height="132" rx="15"/><rect class="node-bar" width="152" height="30" rx="15"/><text x="14" y="21" font-size="13" font-weight="800" id="gatewayLabel">TLS VPN edge</text><text class="sub" x="14" y="58" id="gatewayHostLabel">vpn.corp.example</text><text class="micro" x="14" y="80">Certificate boundary</text><text class="micro" x="14" y="99">Authentication broker</text><text class="micro" x="14" y="118">Route / proxy policy</text></g>
+              <g transform="translate(700 105)"><rect class="node" width="152" height="82" rx="15"/><rect class="node-bar" width="152" height="28" rx="15"/><text x="14" y="20" font-size="13" font-weight="800">Identity + MFA</text><text class="sub" x="14" y="56">Central IdP</text></g>
+              <g transform="translate(700 215)"><rect class="node" width="152" height="82" rx="15"/><rect class="node-bar" width="152" height="28" rx="15"/><text x="14" y="20" font-size="13" font-weight="800">Corporate DNS</text><text class="sub" x="14" y="56" id="dnsLabel">Internal resolution</text></g>
+              <g transform="translate(700 325)"><rect class="node" width="152" height="82" rx="15"/><rect class="node-bar" width="152" height="28" rx="15"/><text x="14" y="20" font-size="13" font-weight="800">Permitted resource</text><text class="sub" x="14" y="56" id="resourceLabel">Internal web app</text></g>
+              <g transform="translate(944 325)"><rect class="node" width="126" height="82" rx="15"/><rect class="node-bar" width="126" height="28" rx="15"/><text x="14" y="20" font-size="13" font-weight="800">Internet</text><text class="sub" x="14" y="56">Public services</text></g>
+              <text class="micro" x="270" y="198">Encrypted candidate path</text><text class="micro" x="531" y="136">Identity policy</text><text class="micro" x="540" y="240">Name resolution</text><text class="micro" x="548" y="332">Authorization</text><text class="micro" x="685" y="468">Possible internet egress paths</text>
+            </svg>
+          </div>
+          <div class="topology-legend"><span><i class="legend-line candidate"></i>Candidate encrypted path</span><span><i class="legend-line identity"></i>Identity dependency</span><span><i class="legend-line"></i>Route, DNS, or application path</span></div>
+          <div class="topology-notes">
+            <div class="topology-note"><strong>Gateway trust</strong><span>Validate hostname, chain, and current TLS before credentials.</span></div>
+            <div class="topology-note"><strong>User trust</strong><span>Authenticate the person with independent factors and a central identity source.</span></div>
+            <div class="topology-note"><strong>Resource trust</strong><span>Authorize only what the mission requires, then verify actual data.</span></div>
+          </div>
+          <details class="training"><summary>Learn mode — three identities exist here</summary><p>The certificate identifies the gateway. MFA identifies the user. Authorization decides which resource that authenticated user may reach. Do not merge these into one control.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Choose architecture</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="2">
+          <div class="screen-head"><div><div class="screen-kicker">Step 2 · Access design</div><h2>Choose the architecture</h2><p>Match the connection and endpoint mechanism to the requested scope. Four decisions are scored.</p></div><div class="screen-badge">20 points</div></div>
+          <div class="form-grid" id="architectureFields"></div>
+          <details class="training"><summary>Learn mode — client-based versus clientless</summary><p>A client-based tunnel can provide routed network access. A clientless portal proxies supported applications through a browser and is useful when the scope is deliberately narrow.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Configure trust</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="3">
+          <div class="screen-head"><div><div class="screen-kicker">Step 3 · TLS and identity</div><h2>Establish gateway trust and MFA</h2><p>Certificate validation and user authentication solve different problems. Ten decisions are scored across two categories.</p></div><div class="screen-badge">30 points</div></div>
+          <h3>TLS and gateway trust</h3>
+          <div class="form-grid" id="tlsFields"></div>
+          <h3 style="margin-top:22px">Identity and MFA</h3>
+          <div class="form-grid" id="identityFields"></div>
+          <details class="training"><summary>Learn mode — validate before authenticating</summary><p>A user should not send credentials until the gateway name and certificate chain validate. MFA then authenticates the user; it does not make an untrusted TLS endpoint safe.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Route traffic</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="4">
+          <div class="screen-head"><div><div class="screen-kicker">Step 4 · Traffic policy</div><h2>Configure tunnel, routes, DNS, and egress</h2><p>Full and split tunneling are requirement-driven. Seven decisions determine where corporate and ordinary internet traffic travel.</p></div><div class="screen-badge">20 points</div></div>
+          <div class="form-grid" id="trafficFields"></div>
+          <details class="training"><summary>Learn mode — split tunnel is more than a toggle</summary><p>A valid split design must identify corporate prefixes, protect internal DNS queries, and define local internet breakout. A full tunnel must send both corporate and internet traffic through organizational controls.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Limit access</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="5">
+          <div class="screen-head"><div><div class="screen-kicker">Step 5 · Authorization</div><h2>Apply least-privilege access</h2><p>The encrypted session is only a transport. Five decisions control device posture, resources, privilege, and auditability.</p></div><div class="screen-badge">15 points</div></div>
+          <div class="form-grid" id="accessFields"></div>
+          <details class="training"><summary>Learn mode — tunnel up does not mean data allowed</summary><p>Authentication answers “who are you?” Authorization answers “what may you use?” Test the requested application and the deny boundary, not only the VPN status icon.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Validate design</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="6">
+          <div class="screen-head"><div><div class="screen-kicker">Step 6 · Evidence</div><h2>Validate in dependency order</h2><p>Choose the strongest evidence, then run the connection test. The engine stops at the first failed dependency.</p></div><div class="screen-badge">15 points</div></div>
+          <div class="validation-layout">
+            <div class="form-grid" id="validationFields"></div>
+            <aside class="test-console" aria-label="Connection test console">
+              <h3>Connection test</h3>
+              <p>Operational output reflects your current configuration. Learn mode adds remediation; Exam mode shows evidence only before submission.</p>
+              <button class="btn btn-violet" id="runTestBtn" type="button">Run layered test</button>
+              <pre class="test-output" id="testOutput" aria-live="polite">No test run.
+
+Sequence: TLS → identity → route/DNS → authorization → data</pre>
+            </aside>
+          </div>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Review and submit</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="7">
+          <div class="screen-head"><div><div class="screen-kicker">Step 7 · Commitment</div><h2>Record confidence, then submit</h2><p>Confidence is not scored. It helps separate knowledge gaps from execution slips during review.</p></div><div class="screen-badge">Submission</div></div>
+          <div class="submit-panel">
+            <h3>How confident are you in this design?</h3>
+            <fieldset style="border:0;padding:0;margin:0"><legend class="sr-only">Confidence from one to five</legend><div class="confidence">
+              <label><input type="radio" name="confidence" value="1"><strong>1</strong><span>Guessing</span></label>
+              <label><input type="radio" name="confidence" value="2"><strong>2</strong><span>Uncertain</span></label>
+              <label><input type="radio" name="confidence" value="3"><strong>3</strong><span>Mixed</span></label>
+              <label><input type="radio" name="confidence" value="4"><strong>4</strong><span>Confident</span></label>
+              <label><input type="radio" name="confidence" value="5"><strong>5</strong><span>Exam ready</span></label>
+            </div></fieldset>
+            <div class="submit-meta"><span class="pill" id="submitAnswered">0 of 30 answered</span><span class="pill" id="submitConfidence">Confidence not recorded</span><span class="pill">100 weighted points</span></div>
+            <p id="submitMessage">Unanswered controls receive no credit. You can still submit when ready.</p>
+            <button class="btn btn-primary" id="submitBtn" type="button">Lock and score attempt</button>
+          </div>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><span></span></div>
+        </article>
+
+        <article class="screen" data-screen="8">
+          <div class="screen-head"><div><div class="screen-kicker">Step 8 · Debrief</div><h2>Performance and remediation</h2><p>Review the weighted result, the first operational failure, and every control that needs correction.</p></div><div class="screen-badge">Results</div></div>
+          <div class="results-empty" id="resultsEmpty">Submit the attempt to unlock the debrief.</div>
+          <div class="results" id="results" aria-live="polite">
+            <div class="score-hero">
+              <div class="score-ring" id="scoreRing"><strong id="scoreValue">0</strong></div>
+              <div class="score-copy"><h3 id="scoreTitle">Attempt scored</h3><p id="scoreSummary"></p><div class="submit-meta" style="justify-content:flex-start"><span class="pill" id="resultConfidence"></span><span class="pill" id="resultDiagnostic"></span></div></div>
+            </div>
+            <div class="category-results" id="categoryResults"></div>
+            <div class="remediation" id="remediation"></div>
+          </div>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-violet" id="retryBtn" type="button">Retry this mission</button><button class="btn btn-primary" id="nextMissionBtn" type="button">Next mission</button></div></div>
+        </article>
+      </section>
+    </div>
+
+    <footer class="footer">Original Security+ practice experience · Objective wording paraphrased · Product behavior is vendor-neutral and requirement-driven.</footer>
+  </main>
+
+  <dialog id="resetDialog" aria-labelledby="resetTitle">
+    <div class="dialog-body">
+      <h2 id="resetTitle">Reset this attempt?</h2>
+      <p>Your selections, test output, confidence, and score for this mission will be cleared. The mission itself will stay the same.</p>
+      <div class="dialog-actions"><button class="btn" id="cancelResetBtn" type="button">Keep working</button><button class="btn btn-danger" id="confirmResetBtn" type="button">Reset attempt</button></div>
+    </div>
+  </dialog>
+
+  <script>
+    window.TLS_VPN_MODEL = (() => {
+      const categories = {
+        architecture: { label: "Architecture fit", weight: 20 },
+        tls: { label: "TLS and gateway trust", weight: 15 },
+        identity: { label: "Identity and MFA", weight: 15 },
+        traffic: { label: "Tunnel, route, and DNS policy", weight: 20 },
+        access: { label: "Access scope", weight: 15 },
+        validation: { label: "Validation evidence", weight: 15 }
+      };
+
+      const fields = {
+        accessMethod: { category: "architecture", label: "Access method", help: "Choose the remote access technology.", options: [["client_tls", "Client-based TLS VPN"], ["clientless_portal", "Clientless TLS portal"], ["site_ipsec", "Site-to-site IPsec tunnel"], ["direct_public", "Publish the internal service directly"]] },
+        connectionModel: { category: "architecture", label: "Connection model", help: "Identify the communicating parties.", options: [["remote_user", "Remote user to organization"], ["site_to_site", "Gateway to gateway"], ["peer_to_peer", "Remote device to remote device"]] },
+        endpointMechanism: { category: "architecture", label: "Endpoint mechanism", help: "Choose what creates the protected session.", options: [["installed_client", "Installed VPN client"], ["browser_only", "Standards-based web browser"], ["gateway_appliance", "Branch gateway appliance"]] },
+        sessionBoundary: { category: "architecture", label: "Session boundary", help: "Decide whether the user receives routed access or an application proxy.", options: [["network_tunnel", "Routed network tunnel"], ["application_proxy", "Per-application proxy session"], ["public_publish", "Unauthenticated public exposure"]] },
+
+        tlsVersion: { category: "tls", label: "TLS baseline", help: "Choose a current protocol baseline.", options: [["tls13", "TLS 1.3"], ["tls12_legacy", "Legacy-only TLS 1.2 profile"], ["tls10", "TLS 1.0 compatibility"]] },
+        gatewayName: { category: "tls", label: "Client connection hostname", help: "The user connects to this gateway name.", options: [["vpn.corp.example", "vpn.corp.example"], ["access.corp.example", "access.corp.example"], ["10.20.30.40", "10.20.30.40"], ["ignore_name", "Any responding endpoint"]] },
+        certificateName: { category: "tls", label: "Certificate identity", help: "The certificate must cover the connection hostname.", options: [["vpn.corp.example", "SAN: vpn.corp.example"], ["access.corp.example", "SAN: access.corp.example"], ["wildcard_external", "SAN: *.external.example"], ["self_ip", "CN: 10.20.30.40"]] },
+        certificateTrust: { category: "tls", label: "Certificate trust", help: "Choose how the issuing chain is validated.", options: [["trusted_public_ca", "Trusted public CA chain"], ["self_signed", "Untrusted self-signed certificate"], ["bypass_warning", "Bypass certificate warnings"]] },
+        transport: { category: "tls", label: "Typical edge transport", help: "Choose the mission's firewall-friendly TLS listener.", options: [["tcp443", "TCP 443"], ["udp500", "UDP 500"], ["gre47", "GRE protocol 47"]] },
+
+        authPrimary: { category: "identity", label: "Primary factor", help: "Choose the first user-authentication factor.", options: [["password", "Individual password"], ["security_question", "Security question"], ["shared_account", "Shared team credential"]] },
+        authSecond: { category: "identity", label: "Independent second factor", help: "Select a separate factor type.", options: [["authenticator_otp", "Authenticator app OTP"], ["none", "No second factor"], ["email_only", "Password sent again by email"]] },
+        identitySource: { category: "identity", label: "Identity source", help: "Choose where user lifecycle and policy are managed.", options: [["central_idp", "Central identity provider"], ["local_gateway_users", "Local gateway-only accounts"], ["shared_vendor_login", "Shared contractor account"]] },
+        authOrder: { category: "identity", label: "Safe authentication order", help: "Choose the order that protects credentials.", options: [["validate_tls_then_mfa", "Validate TLS gateway, then perform MFA"], ["password_then_ignore_cert", "Send password, then ignore certificate warning"], ["mfa_without_tls", "Perform MFA before establishing TLS"]] },
+        sessionControl: { category: "identity", label: "Session control", help: "Match session assurance to the user and scope.", options: [["step_up_sensitive", "Step-up reauthentication for sensitive action"], ["standard_remote", "Standard managed-user remote session"], ["short_portal", "Short, application-bound contractor session"], ["never_expire", "Session never expires"]] },
+
+        tunnelPolicy: { category: "traffic", label: "Traffic policy", help: "Choose full, split, or portal-only behavior.", options: [["full", "Full tunnel"], ["split", "Split tunnel"], ["portal_only", "Portal-only application flow"]] },
+        corporateRoutes: { category: "traffic", label: "Corporate route scope", help: "Select the routes installed on the endpoint.", options: [["all_traffic", "Default route and corporate prefixes"], ["corporate_prefixes", "Named corporate prefixes only"], ["no_client_routes", "No client network routes; portal proxies the app"]] },
+        dnsResolver: { category: "traffic", label: "DNS policy", help: "Define how internal names are resolved.", options: [["corporate_all", "Corporate DNS for all queries"], ["split_corporate", "Corporate DNS for internal domains"], ["portal_side", "Portal resolves the application server-side"], ["local_only", "Local public DNS for every query"]] },
+        internetPath: { category: "traffic", label: "Ordinary internet egress", help: "Choose the path for non-corporate internet traffic.", options: [["org_egress", "Through organizational filtering"], ["local_breakout", "Direct through the local connection"], ["browser_direct", "Browser stays local; only portal requests proxy inward"]] },
+        localLan: { category: "traffic", label: "Local LAN access", help: "Decide whether nearby untrusted devices remain reachable.", options: [["block", "Block local LAN while connected"], ["allow", "Allow all local LAN access"], ["no_client_tunnel", "No network tunnel exists on the endpoint"]] },
+        dnsLeak: { category: "traffic", label: "DNS leak control", help: "Protect the names covered by the selected access model.", options: [["block_all", "Block non-corporate DNS while full tunnel is active"], ["protect_corp_names", "Force corporate domains to corporate DNS"], ["portal_resolves", "Resolve the protected app only at the portal"], ["ignore", "Do not define DNS handling"]] },
+        routeVerification: { category: "traffic", label: "Route verification", help: "Choose evidence that the intended path was installed.", options: [["verify_route_dns", "Inspect route table and DNS policy"], ["verify_icon_only", "Trust the connected icon only"], ["skip_route_checks", "Skip path validation"]] },
+
+        authorizationScope: { category: "access", label: "Authorized scope", help: "Grant only the resources stated in the mission.", options: [["employee_web_app", "Employee web application group"], ["two_named_resources", "Two named corporate resources"], ["single_proxy_app", "One proxied HTTPS application"], ["full_internal_network", "All internal RFC1918 networks"], ["administrator", "Administrator network access"]] },
+        devicePosture: { category: "access", label: "Device posture policy", help: "Match trust to the managed or unmanaged endpoint.", options: [["managed_required", "Require managed, compliant device"], ["risk_based_unmanaged", "Permit isolated browser access on unmanaged device"], ["ignore_posture", "Ignore endpoint posture"]] },
+        resourceRule: { category: "access", label: "Resource rule", help: "Choose the narrowest allow rule.", options: [["named_only", "Allow named resources only; deny others"], ["allow_rfc1918", "Allow every private network"], ["allow_any", "Allow any destination"]] },
+        privilegedAccess: { category: "access", label: "Privileged access", help: "Decide whether remote administration is part of this mission.", options: [["deny", "Deny administrative services"], ["allow_admin", "Allow domain administration"], ["shared_admin", "Use a shared administrator account"]] },
+        sessionLogging: { category: "access", label: "Audit evidence", help: "Choose logs that prove both identity and resource use.", options: [["auth_and_resource", "Log authentication, policy, and resource access"], ["auth_only", "Log authentication only"], ["none", "Disable remote-access logging"]] },
+
+        evidenceOrder: { category: "validation", label: "Validation order", help: "Choose the dependency sequence.", options: [["tls_identity_route_access", "TLS → identity → route/DNS → authorization → data"], ["access_then_tls", "Application → TLS → identity"], ["ping_only", "Ping once and stop"]] },
+        firstTest: { category: "validation", label: "First verification", help: "Start at the earliest dependency.", options: [["gateway_tls_and_name", "Verify gateway reachability, TLS, and certificate name"], ["ping_internal_app", "Ping the internal application"], ["disable_security", "Disable security controls and retry"]] },
+        successProof: { category: "validation", label: "Mission success evidence", help: "Choose evidence that proves the required traffic behavior.", options: [["internal_app_and_org_egress", "Internal app works and public egress is organizational"], ["corporate_routes_and_local_egress", "Corporate routes use VPN and public egress stays local"], ["portal_app_and_no_internal_routes", "Portal app works and no internal client routes exist"], ["icon_green", "VPN icon is green"]] },
+        failureLayer: { category: "validation", label: "Tunnel up, application denied", help: "Identify the most likely remaining control layer.", options: [["authorization", "Authorization / resource policy"], ["encryption", "TLS encryption"], ["transport", "Internet transport"]] }
+      };
+
+      const scenarios = [
+        {
+          id: "TLS-701-A",
+          title: "Secure-control traveler",
+          context: "Managed remote employee",
+          user: "Finance analyst",
+          device: "Managed corporate laptop",
+          network: "Hotel Wi-Fi",
+          resource: "Internal finance web app",
+          gateway: "vpn.corp.example",
+          task: "A traveling employee must use an internal finance web application. Policy requires MFA and organizational filtering for all internet traffic while connected.",
+          requirements: ["Use a remote-user VPN rather than a gateway-to-gateway tunnel.", "Validate the corporate gateway before sending credentials.", "Require an independent second factor.", "Send corporate and ordinary internet traffic through organizational inspection.", "Grant the employee application scope without administrative network access."],
+          topology: { endpoint: "Finance laptop", endpointSub: "Managed + compliant", gateway: "Client TLS gateway", mechanism: "Installed client candidate", dns: "All queries via corp DNS", resource: "Finance web app" },
+          answers: {
+            accessMethod: "client_tls", connectionModel: "remote_user", endpointMechanism: "installed_client", sessionBoundary: "network_tunnel",
+            tlsVersion: "tls13", gatewayName: "vpn.corp.example", certificateName: "vpn.corp.example", certificateTrust: "trusted_public_ca", transport: "tcp443",
+            authPrimary: "password", authSecond: "authenticator_otp", identitySource: "central_idp", authOrder: "validate_tls_then_mfa", sessionControl: "step_up_sensitive",
+            tunnelPolicy: "full", corporateRoutes: "all_traffic", dnsResolver: "corporate_all", internetPath: "org_egress", localLan: "block", dnsLeak: "block_all", routeVerification: "verify_route_dns",
+            authorizationScope: "employee_web_app", devicePosture: "managed_required", resourceRule: "named_only", privilegedAccess: "deny", sessionLogging: "auth_and_resource",
+            evidenceOrder: "tls_identity_route_access", firstTest: "gateway_tls_and_name", successProof: "internal_app_and_org_egress", failureLayer: "authorization"
+          }
+        },
+        {
+          id: "TLS-701-B",
+          title: "Bandwidth-sensitive field employee",
+          context: "Managed field employee",
+          user: "Field engineer",
+          device: "Managed engineering laptop",
+          network: "Metered mobile hotspot",
+          resource: "Asset portal + update repository",
+          gateway: "vpn.corp.example",
+          task: "A field employee needs two corporate resources over a metered link. Policy permits ordinary internet traffic to stay local to reduce concentrator bandwidth, but internal names and routes must remain protected.",
+          requirements: ["Provide routed access from the managed endpoint to two named corporate resources.", "Use trusted TLS and MFA.", "Send only corporate prefixes through the VPN.", "Use corporate DNS for internal domains without leaking those names publicly.", "Allow local internet breakout while denying broad internal access."],
+          topology: { endpoint: "Engineering laptop", endpointSub: "Managed + metered", gateway: "Client TLS gateway", mechanism: "Installed client candidate", dns: "Split corporate DNS", resource: "Two named resources" },
+          answers: {
+            accessMethod: "client_tls", connectionModel: "remote_user", endpointMechanism: "installed_client", sessionBoundary: "network_tunnel",
+            tlsVersion: "tls13", gatewayName: "vpn.corp.example", certificateName: "vpn.corp.example", certificateTrust: "trusted_public_ca", transport: "tcp443",
+            authPrimary: "password", authSecond: "authenticator_otp", identitySource: "central_idp", authOrder: "validate_tls_then_mfa", sessionControl: "standard_remote",
+            tunnelPolicy: "split", corporateRoutes: "corporate_prefixes", dnsResolver: "split_corporate", internetPath: "local_breakout", localLan: "block", dnsLeak: "protect_corp_names", routeVerification: "verify_route_dns",
+            authorizationScope: "two_named_resources", devicePosture: "managed_required", resourceRule: "named_only", privilegedAccess: "deny", sessionLogging: "auth_and_resource",
+            evidenceOrder: "tls_identity_route_access", firstTest: "gateway_tls_and_name", successProof: "corporate_routes_and_local_egress", failureLayer: "authorization"
+          }
+        },
+        {
+          id: "TLS-701-C",
+          title: "Application-specific contractor",
+          context: "Unmanaged contractor",
+          user: "External auditor",
+          device: "Unmanaged personal laptop",
+          network: "Home internet",
+          resource: "One internal audit web app",
+          gateway: "access.corp.example",
+          task: "A contractor on an unmanaged device may use one internal HTTPS application. The contractor must not receive broad internal routes or administrative access.",
+          requirements: ["Use a browser-compatible access method for one web application.", "Validate the portal certificate and require MFA.", "Keep the endpoint outside the routed corporate network.", "Proxy only the approved application and deny unrelated resources.", "Create short, auditable sessions suitable for an unmanaged endpoint."],
+          topology: { endpoint: "Contractor browser", endpointSub: "Unmanaged device", gateway: "Clientless TLS portal", mechanism: "Browser session candidate", dns: "Portal-side resolution", resource: "Audit web app only" },
+          answers: {
+            accessMethod: "clientless_portal", connectionModel: "remote_user", endpointMechanism: "browser_only", sessionBoundary: "application_proxy",
+            tlsVersion: "tls13", gatewayName: "access.corp.example", certificateName: "access.corp.example", certificateTrust: "trusted_public_ca", transport: "tcp443",
+            authPrimary: "password", authSecond: "authenticator_otp", identitySource: "central_idp", authOrder: "validate_tls_then_mfa", sessionControl: "short_portal",
+            tunnelPolicy: "portal_only", corporateRoutes: "no_client_routes", dnsResolver: "portal_side", internetPath: "browser_direct", localLan: "no_client_tunnel", dnsLeak: "portal_resolves", routeVerification: "verify_route_dns",
+            authorizationScope: "single_proxy_app", devicePosture: "risk_based_unmanaged", resourceRule: "named_only", privilegedAccess: "deny", sessionLogging: "auth_and_resource",
+            evidenceOrder: "tls_identity_route_access", firstTest: "gateway_tls_and_name", successProof: "portal_app_and_no_internal_routes", failureLayer: "authorization"
+          }
+        }
+      ];
+
+      const fieldKeys = Object.keys(fields);
+      const scenarioById = id => scenarios.find(scenario => scenario.id === id);
+
+      function grade(scenarioId, answers = {}) {
+        const scenario = scenarioById(scenarioId);
+        if (!scenario) throw new Error(`Unknown scenario: ${scenarioId}`);
+        const categoryResults = {};
+        Object.entries(categories).forEach(([key, category]) => {
+          const keys = fieldKeys.filter(fieldKey => fields[fieldKey].category === key);
+          const correct = keys.filter(fieldKey => answers[fieldKey] === scenario.answers[fieldKey]).length;
+          categoryResults[key] = { ...category, correct, total: keys.length, points: Math.round((correct / keys.length) * category.weight) };
+        });
+        const results = fieldKeys.map(key => ({ key, category: fields[key].category, correct: answers[key] === scenario.answers[key], expected: scenario.answers[key], actual: answers[key] || "" }));
+        return {
+          score: Object.values(categoryResults).reduce((sum, category) => sum + category.points, 0),
+          correct: results.filter(result => result.correct).length,
+          answered: results.filter(result => result.actual).length,
+          total: results.length,
+          categories: categoryResults,
+          results
+        };
+      }
+
+      function diagnose(scenarioId, answers = {}) {
+        const scenario = scenarioById(scenarioId);
+        if (!scenario) throw new Error(`Unknown scenario: ${scenarioId}`);
+        const expected = scenario.answers;
+        const configKeys = fieldKeys.filter(key => fields[key].category !== "validation");
+        if (configKeys.some(key => !answers[key])) return { code: "CONFIG-INCOMPLETE", layer: "Configuration", observed: "One or more required configuration controls are blank.", action: "Complete the architecture, trust, identity, traffic, and access controls.", next: "Run the layered test again.", ok: false };
+        const wrong = keys => keys.some(key => answers[key] !== expected[key]);
+        if (wrong(["accessMethod", "connectionModel", "endpointMechanism", "sessionBoundary"])) return { code: "ARCHITECTURE-MISMATCH", layer: "Access architecture", observed: "The endpoint mechanism or session boundary cannot deliver the mission's requested scope.", action: "Reconcile client-based routed access with clientless application proxy access.", next: "Confirm the access method before testing TLS.", ok: false };
+        if (wrong(["gatewayName", "certificateName"])) return { code: "TLS-NAME-MISMATCH", layer: "TLS gateway identity", observed: "The connection hostname and certificate identity do not match the required gateway.", action: "Use the mission gateway hostname and a certificate whose SAN covers it.", next: "Repeat hostname and certificate validation.", ok: false };
+        if (wrong(["certificateTrust"])) return { code: "TLS-UNTRUSTED", layer: "TLS certificate chain", observed: "The gateway certificate chain is not trusted or warnings are being bypassed.", action: "Present a valid chain to a trusted CA and prohibit warning bypass.", next: "Validate the chain before sending credentials.", ok: false };
+        if (wrong(["tlsVersion"])) return { code: "TLS-OBSOLETE", layer: "TLS policy", observed: "The selected TLS baseline does not meet the mission's current protocol requirement.", action: "Use the current approved TLS profile.", next: "Renegotiate the TLS session and inspect the negotiated version.", ok: false };
+        if (wrong(["transport"])) return { code: "TLS-TRANSPORT-BLOCKED", layer: "Edge transport", observed: "The selected transport does not match the TLS listener available for this mission.", action: "Use the stated firewall-friendly TLS listener.", next: "Test gateway reachability and TLS negotiation.", ok: false };
+        if (wrong(["authSecond"])) return { code: "MFA-MISSING", layer: "User authentication", observed: "An independent second factor is absent or invalid.", action: "Require the approved independent second factor.", next: "Repeat authentication and confirm both-factor success in the IdP log.", ok: false };
+        if (wrong(["authPrimary", "identitySource", "authOrder", "sessionControl"])) return { code: "IDENTITY-POLICY", layer: "Identity policy", observed: "The identity source, factor sequence, or session assurance contradicts the mission.", action: "Use individual centrally managed identity and validate TLS before MFA.", next: "Inspect the IdP and gateway authentication events.", ok: false };
+        if (wrong(["tunnelPolicy", "corporateRoutes", "internetPath", "localLan", "routeVerification"])) return { code: "ROUTE-POLICY", layer: "Tunnel and routing", observed: "The selected route, egress, or local-LAN behavior conflicts with the mission requirement.", action: "Rebuild the route policy from the required full, split, or portal-only behavior.", next: "Inspect the endpoint route table and test corporate plus public destinations.", ok: false };
+        if (wrong(["dnsResolver", "dnsLeak"])) return { code: "DNS-POLICY", layer: "Name resolution", observed: "Internal DNS queries do not follow the protected resolution path.", action: "Bind internal names to corporate or portal-side resolution as the access model requires.", next: "Resolve the protected hostname and inspect which resolver answered.", ok: false };
+        if (wrong(["authorizationScope", "devicePosture", "resourceRule", "privilegedAccess", "sessionLogging"])) return { code: "ACCESS-OVERBROAD", layer: "Authorization", observed: "The session is encrypted and authenticated, but resource or device policy is broader than required.", action: "Restrict access to named resources, deny administrative services, and retain audit evidence.", next: "Test the allowed application and a deliberately disallowed destination.", ok: false };
+        return { code: "DATA-PASS", layer: "End-to-end", observed: "TLS trust, MFA, route/DNS behavior, authorization, and application data all validate.", action: "Preserve the configuration and evidence as the approved baseline.", next: "Compare confidence with the scored debrief, then transfer the reasoning to the next mission.", ok: true };
+      }
+
+      return { categories, fields, scenarios, fieldKeys, grade, diagnose };
+    })();
+  </script>
+
+  <script>
+    (() => {
+      const model = window.TLS_VPN_MODEL;
+      const steps = [
+        ["Mission", "Read constraints"], ["Topology", "Trace dependencies"], ["Architecture", "Choose access"], ["Trust + MFA", "Validate identities"], ["Traffic", "Routes and DNS"], ["Access", "Limit resources"], ["Validate", "Test evidence"], ["Submit", "Commit attempt"], ["Debrief", "Close gaps"]
+      ];
+      const groups = {
+        architectureFields: ["accessMethod", "connectionModel", "endpointMechanism", "sessionBoundary"],
+        tlsFields: ["tlsVersion", "gatewayName", "certificateName", "certificateTrust", "transport"],
+        identityFields: ["authPrimary", "authSecond", "identitySource", "authOrder", "sessionControl"],
+        trafficFields: ["tunnelPolicy", "corporateRoutes", "dnsResolver", "internetPath", "localLan", "dnsLeak", "routeVerification"],
+        accessFields: ["authorizationScope", "devicePosture", "resourceRule", "privilegedAccess", "sessionLogging"],
+        validationFields: ["evidenceOrder", "firstTest", "successProof", "failureLayer"]
+      };
+      const state = { scenarioIndex: 0, screen: 0, answers: {}, mode: "learn", submitted: false, confidence: "", lastDiagnostic: null };
+      const shell = document.getElementById("appShell");
+      const screens = [...document.querySelectorAll(".screen")];
+      const stepper = document.getElementById("stepper");
+      const testOutput = document.getElementById("testOutput");
+      const resetDialog = document.getElementById("resetDialog");
+      const scenario = () => model.scenarios[state.scenarioIndex];
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[character]));
+      }
+
+      function optionLabel(fieldKey, value) {
+        return model.fields[fieldKey].options.find(option => option[0] === value)?.[1] || value || "No selection";
+      }
+
+      function renderStepper() {
+        stepper.innerHTML = steps.map((step, index) => `<button class="step-button${index === state.screen ? "" : ""}" type="button" data-step="${index}" ${index === 8 && !state.submitted ? "disabled" : ""}><span class="step-number">${index}</span><span class="step-label"><strong>${step[0]}</strong><small>${step[1]}</small></span></button>`).join("");
+        stepper.querySelectorAll(".step-button").forEach(button => button.addEventListener("click", () => goTo(Number(button.dataset.step))));
+        updateStepper();
+      }
+
+      function renderFields() {
+        Object.entries(groups).forEach(([containerId, keys]) => {
+          const container = document.getElementById(containerId);
+          container.innerHTML = keys.map(key => {
+            const field = model.fields[key];
+            const options = field.options.map(option => `<option value="${escapeHtml(option[0])}">${escapeHtml(option[1])}</option>`).join("");
+            return `<div class="field" data-field-wrap="${key}"><label for="field-${key}">${escapeHtml(field.label)}<small class="training-cue">${escapeHtml(field.help)}</small></label><select id="field-${key}" data-field="${key}"><option value="">Choose…</option>${options}</select><span class="field-note" aria-live="polite"></span></div>`;
+          }).join("");
+        });
+        document.querySelectorAll("select[data-field]").forEach(select => {
+          select.addEventListener("change", event => {
+            if (state.submitted) return;
+            state.answers[event.target.dataset.field] = event.target.value;
+            state.lastDiagnostic = null;
+            resetDiagnosticView();
+            updateProgress();
+          });
+        });
+      }
+
+      function renderMission() {
+        const current = scenario();
+        document.getElementById("missionMeta").textContent = current.id;
+        document.getElementById("contextMeta").textContent = current.context;
+        document.getElementById("missionId").textContent = current.id;
+        document.getElementById("missionTitle").textContent = current.title;
+        document.getElementById("missionTask").textContent = current.task;
+        document.getElementById("missionFacts").innerHTML = [["User", current.user], ["Endpoint", current.device], ["Network", current.network], ["Resource", current.resource]].map(item => `<div class="fact"><small>${escapeHtml(item[0])}</small><strong>${escapeHtml(item[1])}</strong></div>`).join("");
+        document.getElementById("requirements").innerHTML = current.requirements.map(requirement => `<li>${escapeHtml(requirement)}</li>`).join("");
+        document.getElementById("endpointLabel").textContent = current.topology.endpoint;
+        document.getElementById("endpointSub").textContent = current.topology.endpointSub;
+        document.getElementById("gatewayLabel").textContent = current.topology.gateway;
+        document.getElementById("gatewayHostLabel").textContent = current.gateway;
+        document.getElementById("endpointMechanismLabel").textContent = current.topology.mechanism;
+        document.getElementById("dnsLabel").textContent = current.topology.dns;
+        document.getElementById("resourceLabel").textContent = current.topology.resource;
+      }
+
+      function updateStepper() {
+        stepper.querySelectorAll(".step-button").forEach((button, index) => {
+          if (index === state.screen) button.setAttribute("aria-current", "step"); else button.removeAttribute("aria-current");
+          button.classList.toggle("complete", (index < state.screen && index < 7) || (state.submitted && index <= 8));
+          if (index === 8) button.disabled = !state.submitted;
+        });
+      }
+
+      function goTo(index) {
+        if (index === 8 && !state.submitted) return;
+        state.screen = Math.max(0, Math.min(8, index));
+        screens.forEach((screen, screenIndex) => screen.classList.toggle("active", screenIndex === state.screen));
+        updateStepper();
+        document.querySelector(`.screen[data-screen="${state.screen}"] h2`)?.focus?.();
+        window.scrollTo({ top: document.querySelector(".progress-row").offsetTop - 10, behavior: "smooth" });
+      }
+
+      function updateProgress() {
+        const answered = model.fieldKeys.filter(key => state.answers[key]).length;
+        const percent = Math.round((answered / model.fieldKeys.length) * 100);
+        document.getElementById("progressBar").style.width = `${percent}%`;
+        document.getElementById("progressCount").textContent = `${answered} / ${model.fieldKeys.length} answered`;
+        document.getElementById("submitAnswered").textContent = `${answered} of ${model.fieldKeys.length} answered`;
+      }
+
+      function updateConfidence() {
+        const labels = { "1": "Guessing", "2": "Uncertain", "3": "Mixed", "4": "Confident", "5": "Exam ready" };
+        document.getElementById("submitConfidence").textContent = state.confidence ? `Confidence ${state.confidence}/5 · ${labels[state.confidence]}` : "Confidence not recorded";
+      }
+
+      function diagnosticText(result) {
+        const examBeforeSubmit = state.mode === "exam" && !state.submitted;
+        const lines = [`[${result.code}]`, `LAYER: ${result.layer}`, `OBSERVED: ${result.observed}`];
+        if (!examBeforeSubmit) lines.push(`ACTION: ${result.action}`, `NEXT: ${result.next}`);
+        else lines.push("REMEDIATION: Hidden until submission in Exam mode.");
+        return lines.join("\n");
+      }
+
+      function resetDiagnosticView() {
+        testOutput.className = "test-output";
+        testOutput.textContent = "Configuration changed. Run the layered test again.\n\nSequence: TLS → identity → route/DNS → authorization → data";
+        document.querySelectorAll(".topology .candidate").forEach(path => path.classList.remove("pass", "fail"));
+      }
+
+      function runDiagnostic() {
+        state.lastDiagnostic = model.diagnose(scenario().id, state.answers);
+        testOutput.textContent = diagnosticText(state.lastDiagnostic);
+        testOutput.className = `test-output ${state.lastDiagnostic.ok ? "good" : "bad"}`;
+        document.getElementById("candidatePath").classList.toggle("pass", state.lastDiagnostic.ok);
+        document.getElementById("candidatePath").classList.toggle("fail", !state.lastDiagnostic.ok);
+      }
+
+      function applyFeedback(grade) {
+        document.querySelectorAll("select[data-field]").forEach(select => {
+          const key = select.dataset.field;
+          const correct = grade.results.find(result => result.key === key).correct;
+          const wrapper = document.querySelector(`[data-field-wrap="${key}"]`);
+          wrapper.classList.toggle("correct", correct);
+          wrapper.classList.toggle("incorrect", !correct);
+          wrapper.querySelector(".field-note").textContent = correct ? "Correct for this mission." : `Review: ${optionLabel(key, scenario().answers[key])}`;
+          select.disabled = true;
+        });
+      }
+
+      function renderResults(grade, diagnostic) {
+        document.getElementById("resultsEmpty").style.display = "none";
+        document.getElementById("results").classList.add("show");
+        document.getElementById("scoreValue").textContent = grade.score;
+        document.getElementById("scoreRing").style.setProperty("--score-angle", `${grade.score * 3.6}deg`);
+        document.getElementById("scoreTitle").textContent = grade.score >= 90 ? "Transfer-ready performance" : grade.score >= 75 ? "Strong base; close targeted gaps" : "Rebuild the dependency chain";
+        document.getElementById("scoreSummary").textContent = `${grade.correct} of ${grade.total} decisions correct. The operational path ended at ${diagnostic.code}.`;
+        document.getElementById("resultConfidence").textContent = state.confidence ? `Confidence ${state.confidence}/5` : "Confidence not recorded";
+        document.getElementById("resultDiagnostic").textContent = diagnostic.code;
+        document.getElementById("categoryResults").innerHTML = Object.values(grade.categories).map(category => `<div class="category-row"><strong>${escapeHtml(category.label)}</strong><div class="bar"><span style="width:${(category.points / category.weight) * 100}%"></span></div><em>${category.points} / ${category.weight}</em></div>`).join("");
+        const misses = grade.results.filter(result => !result.correct);
+        const diagnosticCard = `<div class="remediation-item ${diagnostic.ok ? "good" : ""}"><strong>${escapeHtml(diagnostic.code)} · ${escapeHtml(diagnostic.layer)}</strong><span>${escapeHtml(diagnostic.observed)} ${escapeHtml(diagnostic.action)} Next: ${escapeHtml(diagnostic.next)}</span></div>`;
+        const missCards = misses.slice(0, 12).map(result => `<div class="remediation-item"><strong>${escapeHtml(model.fields[result.key].label)}</strong><span>Selected: ${escapeHtml(optionLabel(result.key, result.actual))}. Review: ${escapeHtml(optionLabel(result.key, result.expected))}.</span></div>`).join("");
+        const remaining = misses.length > 12 ? `<div class="notice warn">${misses.length - 12} additional field corrections are marked directly on their configuration screens.</div>` : "";
+        document.getElementById("remediation").innerHTML = diagnosticCard + (missCards || `<div class="remediation-item good"><strong>All scored controls align</strong><span>Explain why the opposite tunnel policy would fail this mission before moving on.</span></div>`) + remaining;
+      }
+
+      function submitAttempt() {
+        if (state.submitted) return;
+        state.submitted = true;
+        shell.classList.add("submitted");
+        const grade = model.grade(scenario().id, state.answers);
+        const diagnostic = model.diagnose(scenario().id, state.answers);
+        state.lastDiagnostic = diagnostic;
+        applyFeedback(grade);
+        renderResults(grade, diagnostic);
+        renderStepper();
+        goTo(8);
+      }
+
+      function clearAttempt({ keepMission = true } = {}) {
+        if (!keepMission) state.scenarioIndex = (state.scenarioIndex + 1) % model.scenarios.length;
+        state.screen = 0;
+        state.answers = {};
+        state.submitted = false;
+        state.confidence = "";
+        state.lastDiagnostic = null;
+        shell.classList.remove("submitted");
+        document.querySelectorAll("select[data-field]").forEach(select => { select.value = ""; select.disabled = false; });
+        document.querySelectorAll(".field").forEach(field => field.classList.remove("correct", "incorrect"));
+        document.querySelectorAll(".field-note").forEach(note => { note.textContent = ""; });
+        document.querySelectorAll('input[name="confidence"]').forEach(input => { input.checked = false; });
+        document.getElementById("resultsEmpty").style.display = "block";
+        document.getElementById("results").classList.remove("show");
+        renderMission();
+        renderStepper();
+        updateProgress();
+        updateConfidence();
+        resetDiagnosticView();
+        goTo(0);
+      }
+
+      function requestReset() {
+        if (typeof resetDialog.showModal === "function") resetDialog.showModal();
+        else if (window.confirm("Reset this attempt?")) clearAttempt({ keepMission: true });
+      }
+
+      renderFields();
+      renderStepper();
+      renderMission();
+      updateProgress();
+      updateConfidence();
+
+      document.querySelectorAll(".next").forEach(button => button.addEventListener("click", () => goTo(state.screen + 1)));
+      document.querySelectorAll(".back").forEach(button => button.addEventListener("click", () => goTo(state.screen - 1)));
+      document.querySelectorAll('input[name="confidence"]').forEach(input => input.addEventListener("change", event => { state.confidence = event.target.value; updateConfidence(); }));
+      document.getElementById("runTestBtn").addEventListener("click", runDiagnostic);
+      document.getElementById("submitBtn").addEventListener("click", submitAttempt);
+      document.getElementById("resetBtn").addEventListener("click", requestReset);
+      document.getElementById("cancelResetBtn").addEventListener("click", () => resetDialog.close());
+      document.getElementById("confirmResetBtn").addEventListener("click", () => { resetDialog.close(); clearAttempt({ keepMission: true }); });
+      document.getElementById("retryBtn").addEventListener("click", () => clearAttempt({ keepMission: true }));
+      document.getElementById("nextMissionBtn").addEventListener("click", () => clearAttempt({ keepMission: false }));
+      document.getElementById("newBtn").addEventListener("click", () => clearAttempt({ keepMission: false }));
+      document.getElementById("modeBtn").addEventListener("click", event => {
+        state.mode = state.mode === "learn" ? "exam" : "learn";
+        shell.classList.toggle("exam-mode", state.mode === "exam");
+        event.currentTarget.setAttribute("aria-pressed", state.mode === "exam" ? "true" : "false");
+        event.currentTarget.textContent = `Mode: ${state.mode === "exam" ? "Exam" : "Learn"}`;
+        document.getElementById("modeMeta").textContent = state.mode === "exam" ? "Exam" : "Learn";
+        if (state.lastDiagnostic) testOutput.textContent = diagnosticText(state.lastDiagnostic);
+      });
+    })();
+  </script>
+</body>
+</html>
