@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SecureLink is an original CompTIA Security+ SY0-701 VPN configuration and troubleshooting PBQ practice lab.">
+  <title>SecureLink VPN PBQ — Security+ SY0-701</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #061018;
+      --panel: #0b1b27;
+      --panel-2: #102636;
+      --panel-3: #07151f;
+      --line: #28475a;
+      --line-strong: #3a657d;
+      --text: #edf8ff;
+      --muted: #9bb3c2;
+      --cyan: #3dd9ff;
+      --teal: #2ce0bd;
+      --violet: #ae94ff;
+      --ok: #43d39e;
+      --warn: #f4c95d;
+      --bad: #ff7187;
+      --shadow: 0 18px 52px rgba(0, 0, 0, .32);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% -8%, rgba(61, 217, 255, .15), transparent 31rem),
+        radial-gradient(circle at 94% 8%, rgba(174, 148, 255, .10), transparent 28rem),
+        linear-gradient(180deg, #050d14, var(--bg));
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: var(--cyan); }
+    .shell { width: min(1380px, calc(100% - 28px)); margin: 0 auto; padding: 24px 0 52px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: clamp(22px, 4vw, 40px);
+      background: linear-gradient(145deg, rgba(16, 38, 54, .98), rgba(6, 20, 30, .98));
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 20rem;
+      height: 20rem;
+      right: -8rem;
+      bottom: -13rem;
+      border-radius: 50%;
+      background: rgba(44, 224, 189, .08);
+      pointer-events: none;
+    }
+    .eyebrow { color: var(--teal); font-size: .78rem; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 7px 0 10px; font-size: clamp(2.15rem, 5vw, 3.8rem); line-height: 1.02; }
+    h2, h3 { margin: 0; }
+    p { margin: 0; }
+    .hero-copy { max-width: 880px; color: var(--muted); }
+    .hero-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 19px; }
+    .btn {
+      min-height: 44px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: #102739;
+      color: var(--text);
+      font-weight: 780;
+    }
+    .btn:hover { border-color: var(--cyan); }
+    .btn-primary { border-color: transparent; background: linear-gradient(135deg, var(--cyan), #169ac8); color: #00141d; }
+    .btn-violet { background: #251f42; border-color: #665a92; }
+    .btn-danger { background: #381b27; border-color: #7a3446; }
+    .btn:disabled { cursor: not-allowed; opacity: .42; }
+    button:focus-visible, select:focus-visible { outline: 3px solid rgba(61, 217, 255, .35); outline-offset: 3px; }
+    .meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
+    .meta-card { border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px; background: rgba(3, 14, 22, .55); }
+    .meta-card small { display: block; color: var(--muted); }
+    .meta-card strong { display: block; margin-top: 3px; }
+    .progress-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin: 16px 0 22px; }
+    .progress { height: 10px; overflow: hidden; border: 1px solid #244558; border-radius: 999px; background: #0a1b27; }
+    .progress > div { width: 0; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--teal)); transition: width .2s ease; }
+    .progress-count { color: var(--muted); font-weight: 780; white-space: nowrap; }
+    .workspace { display: grid; grid-template-columns: 244px minmax(0, 1fr); gap: 18px; align-items: start; }
+    .stepper { position: sticky; top: 14px; border: 1px solid var(--line); border-radius: var(--radius); padding: 11px; background: rgba(8, 24, 35, .96); box-shadow: 0 10px 34px rgba(0, 0, 0, .22); }
+    .step-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 9px;
+      align-items: center;
+      min-height: 48px;
+      margin: 2px 0;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 7px 8px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+    }
+    .step-button:hover { background: #102435; color: var(--text); }
+    .step-button[aria-current="step"] { border-color: #3b738c; background: #0f3041; color: var(--text); }
+    .step-button.complete .step-number { border-color: var(--ok); color: var(--ok); }
+    .step-number { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--cyan); font-weight: 850; }
+    .step-label strong { display: block; font-size: .88rem; }
+    .step-label small { display: block; color: inherit; font-size: .73rem; }
+    .stage { min-width: 0; }
+    .screen { display: none; border: 1px solid var(--line); border-radius: 22px; padding: clamp(17px, 3vw, 28px); background: linear-gradient(145deg, rgba(13, 31, 44, .98), rgba(7, 22, 32, .98)); box-shadow: 0 12px 38px rgba(0, 0, 0, .22); }
+    .screen.active { display: block; }
+    .screen-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+    .screen-head p { max-width: 760px; margin-top: 5px; color: var(--muted); }
+    .screen-kicker { color: var(--cyan); font-size: .78rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+    .screen-badge { flex: 0 0 auto; border: 1px solid #3e6a80; border-radius: 999px; padding: 5px 9px; color: var(--teal); font-size: .78rem; font-weight: 820; }
+    .notice { border-left: 4px solid var(--cyan); border-radius: 10px; padding: 12px 14px; background: #0a2230; color: #d8edf8; }
+    .notice.warn { border-left-color: var(--warn); background: #2a2212; }
+    .notice.bad { border-left-color: var(--bad); background: #321721; }
+    .notice.good { border-left-color: var(--ok); background: #0a2a22; }
+    .mental-flow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .flow-card { position: relative; min-height: 96px; border: 1px solid var(--line); border-radius: 13px; padding: 10px; background: #081824; }
+    .flow-card:not(:last-child)::after { content: "›"; position: absolute; right: -9px; top: 35px; z-index: 2; color: var(--cyan); font-size: 1.4rem; font-weight: 900; }
+    .flow-card small { color: var(--teal); font-weight: 850; }
+    .flow-card strong { display: block; margin: 2px 0; font-size: .9rem; }
+    .flow-card span { color: var(--muted); font-size: .75rem; }
+    .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin-top: 18px; }
+    .fact { border: 1px solid var(--line); border-radius: 13px; padding: 11px; background: var(--panel-3); }
+    .fact small { display: block; color: var(--muted); }
+    .fact strong { display: block; margin-top: 3px; overflow-wrap: anywhere; }
+    .requirements { margin: 16px 0 0; padding-left: 22px; }
+    .requirements li { margin: 6px 0; }
+    .topology-frame { overflow-x: auto; border: 1px solid var(--line); border-radius: 17px; background: #06141e; }
+    .topology { display: block; width: 100%; min-width: 920px; height: auto; }
+    .topology text { fill: var(--text); font-family: inherit; }
+    .topology .zone { fill: #081b28; stroke: #294c61; stroke-width: 1.5; stroke-dasharray: 7 6; }
+    .topology .zone-label { fill: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: 1.5px; }
+    .topology .node { fill: #102b3b; stroke: #477185; stroke-width: 2; }
+    .topology .node-bar { fill: #173e51; }
+    .topology .sub { fill: var(--muted); font-size: 12px; }
+    .topology .micro { fill: #84a3b5; font-size: 10px; }
+    .topology .link { fill: none; stroke: #496677; stroke-width: 3; }
+    .topology .tunnel { fill: none; stroke: var(--violet); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 18 11; opacity: .45; }
+    .topology .tunnel.live { stroke: var(--ok); opacity: .95; animation: tunnel-flow 1.25s linear infinite; }
+    .topology .nat { fill: #352d16; stroke: var(--warn); stroke-width: 2; }
+    .topology-legend { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 9px; color: var(--muted); font-size: .82rem; }
+    .legend-line { display: inline-block; width: 28px; margin-right: 5px; border-top: 4px solid #496677; vertical-align: middle; }
+    .legend-line.tunnel { border-color: var(--violet); border-top-style: dashed; }
+    .legend-line.protected { border-color: var(--ok); }
+    @keyframes tunnel-flow { to { stroke-dashoffset: -29; } }
+    .topology-notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 13px; }
+    .topology-note { border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: #091a26; }
+    .topology-note strong { display: block; }
+    .topology-note span { color: var(--muted); font-size: .85rem; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+    .field { min-width: 0; display: grid; gap: 6px; }
+    .field label { font-weight: 790; }
+    .field label small { display: block; color: var(--muted); font-weight: 500; }
+    select {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid #396078;
+      border-radius: 11px;
+      padding: 9px 11px;
+      background: #061722;
+      color: var(--text);
+    }
+    select:disabled { opacity: .7; }
+    .field.correct select { border-color: var(--ok); }
+    .field.incorrect select { border-color: var(--bad); }
+    .field-note { display: none; font-size: .78rem; }
+    .field.correct .field-note, .field.incorrect .field-note { display: block; }
+    .field.correct .field-note { color: #a9f3d5; }
+    .field.incorrect .field-note { color: #ffc4cf; }
+    .choice-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .choice-card { border: 1px solid var(--line); border-radius: 15px; padding: 14px; background: #091a26; }
+    .choice-card strong { display: block; margin-bottom: 4px; }
+    .choice-card p { margin-bottom: 11px; color: var(--muted); font-size: .86rem; }
+    .endpoint-banner { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; margin-bottom: 16px; border: 1px solid var(--line); border-radius: 15px; padding: 12px 14px; background: #081a26; }
+    .device-icon { display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid #3e6e83; border-radius: 13px; background: #0d3243; color: var(--cyan); font-weight: 900; }
+    .endpoint-banner small { display: block; color: var(--muted); }
+    .endpoint-banner code { color: var(--teal); font-size: .88rem; }
+    .config-group { margin-top: 18px; border: 1px solid var(--line); border-radius: 16px; padding: 15px; background: rgba(5, 17, 25, .5); }
+    .group-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .group-head p { color: var(--muted); font-size: .84rem; }
+    .term-pair { color: var(--violet); font-size: .76rem; font-weight: 800; }
+    .path-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    .path-table th { padding: 0 8px; color: var(--muted); font-size: .8rem; text-align: left; }
+    .path-table td { padding: 10px 8px; background: #081a26; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); vertical-align: middle; }
+    .path-table td:first-child { border-left: 1px solid var(--line); border-radius: 11px 0 0 11px; }
+    .path-table td:last-child { border-right: 1px solid var(--line); border-radius: 0 11px 11px 0; }
+    .path-table code { color: var(--cyan); }
+    .path-table select { min-width: 135px; }
+    .table-scroll { overflow-x: auto; }
+    .training { margin-top: 16px; border: 1px solid #4b4770; border-radius: 15px; padding: 12px 14px; background: #17172a; }
+    .training summary { cursor: pointer; color: #d9ceff; font-weight: 820; }
+    .training p { margin-top: 9px; color: #bdb8d5; }
+    .training ul { margin-bottom: 0; }
+    .exam-mode .training, .exam-mode .learn-only { display: none !important; }
+    .validation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
+    .test-card { border: 1px solid var(--line); border-radius: 15px; padding: 13px; background: #081a26; }
+    .test-card p { min-height: 47px; margin: 5px 0 11px; color: var(--muted); font-size: .85rem; }
+    .test-output { min-height: 112px; margin-top: 10px; border: 1px solid #29485a; border-radius: 10px; padding: 10px; background: #05131d; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; white-space: pre-wrap; }
+    .test-output.good { border-color: rgba(67, 211, 158, .6); color: #b5f3db; }
+    .test-output.bad { border-color: rgba(255, 113, 135, .65); color: #ffc2cd; }
+    .submit-panel { text-align: center; border: 1px solid var(--line); border-radius: 18px; padding: clamp(20px, 5vw, 44px); background: #071923; }
+    .submit-panel .score-preview { margin: 16px 0; color: var(--muted); }
+    .results { display: none; }
+    .results.show { display: block; }
+    .score-hero { display: grid; grid-template-columns: 150px 1fr; gap: 19px; align-items: center; }
+    .score-ring { display: grid; place-items: center; width: 142px; height: 142px; border-radius: 50%; background: conic-gradient(var(--ok) var(--score-angle, 0deg), #183141 0); box-shadow: inset 0 0 0 14px #091923; }
+    .score-ring strong { font-size: 2rem; }
+    .score-copy p { color: var(--muted); }
+    .category-results { display: grid; gap: 10px; margin-top: 20px; }
+    .category-row { display: grid; grid-template-columns: minmax(155px, 1fr) 2fr 68px; align-items: center; gap: 10px; }
+    .category-row strong { font-size: .88rem; }
+    .bar { height: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; background: #081822; }
+    .bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--teal)); }
+    .category-row em { color: var(--muted); font-style: normal; text-align: right; }
+    .remediation { display: grid; gap: 9px; margin-top: 20px; }
+    .remediation-item { border-left: 4px solid var(--bad); border-radius: 10px; padding: 11px 13px; background: #25141c; }
+    .remediation-item.good { border-left-color: var(--ok); background: #0a261e; }
+    .remediation-item strong { display: block; }
+    .remediation-item span { color: #d8c7cd; font-size: .86rem; }
+    .screen-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 17px; }
+    .screen-nav .right { display: flex; gap: 9px; }
+    .footer { padding-top: 30px; color: var(--muted); font-size: .83rem; text-align: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    @media (max-width: 1100px) {
+      .mental-flow { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .flow-card::after { display: none; }
+      .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 880px) {
+      .workspace { grid-template-columns: 1fr; }
+      .stepper { position: static; display: flex; overflow-x: auto; padding: 8px; }
+      .step-button { flex: 0 0 145px; }
+      .choice-cards, .validation-grid { grid-template-columns: 1fr; }
+      .test-card p { min-height: 0; }
+    }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 16px, 1380px); padding-top: 8px; }
+      .hero, .screen { border-radius: 18px; }
+      .meta, .form-grid, .facts, .topology-notes { grid-template-columns: 1fr; }
+      .mental-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .screen-head, .endpoint-banner { align-items: flex-start; }
+      .endpoint-banner { grid-template-columns: auto 1fr; }
+      .endpoint-banner code { grid-column: 1 / -1; }
+      .score-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+      .category-row { grid-template-columns: 1fr 54px; }
+      .category-row .bar { grid-column: 1 / -1; grid-row: 2; }
+      .screen-nav { align-items: stretch; flex-direction: column; }
+      .screen-nav .right { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 430px) { .mental-flow { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .progress > div { transition: none; }
+      .topology .tunnel.live { animation: none; }
+    }
+  </style>
+</head>
+<body>
+<main class="shell" id="app">
+  <header class="hero">
+    <div class="eyebrow">CompTIA Security+ SY0-701 • Original Interactive PBQ</div>
+    <h1>SecureLink VPN Lab</h1>
+    <p class="hero-copy">Translate a business requirement into a mirrored, secure Branch-to-HQ IPsec tunnel. Configure both gateways, open only the required network path, validate each security-association layer, and diagnose your own mistakes.</p>
+    <div class="meta">
+      <div class="meta-card"><small>Scenario</small><strong id="scenarioCode">VPN-701-A</strong></div>
+      <div class="meta-card"><small>Mode</small><strong id="modeLabel">Learn</strong></div>
+      <div class="meta-card"><small>Scored decisions</small><strong id="decisionCount">40</strong></div>
+      <div class="meta-card"><small>Attempt time</small><strong id="timer">00:00</strong></div>
+    </div>
+    <div class="hero-actions">
+      <button class="btn btn-primary" id="modeBtn" type="button" aria-pressed="true">Mode: Learn</button>
+      <button class="btn" id="newBtn" type="button">New scenario</button>
+      <button class="btn" id="resetBtn" type="button">Reset attempt</button>
+      <button class="btn btn-violet" id="reviewBtn" type="button" disabled>Review results</button>
+    </div>
+    <span class="sr-only">Available practice states: Mode: Learn and Mode: Exam.</span>
+  </header>
+
+  <div class="progress-row">
+    <div class="progress" role="progressbar" aria-label="PBQ completion" aria-valuemin="0" aria-valuemax="40" aria-valuenow="0"><div id="progressFill"></div></div>
+    <div class="progress-count"><span id="answered">0</span>/<span id="answerTotal">40</span> decisions answered</div>
+  </div>
+
+  <div class="workspace">
+    <nav class="stepper" id="stepper" aria-label="PBQ steps"></nav>
+    <div class="stage">
+      <section class="screen active" data-screen="mission" aria-labelledby="missionTitle">
+        <div class="screen-head">
+          <div><div class="screen-kicker">Step 0 • Requirement</div><h2 id="missionTitle">Mission briefing</h2><p>Start with the business need. Every later value should be justified by this page rather than memorized in isolation.</p></div>
+          <div class="screen-badge" id="missionBadge">Core scenario</div>
+        </div>
+        <div class="notice" id="scenarioSummary"></div>
+        <div class="facts" id="facts"></div>
+        <ul class="requirements" id="requirements"></ul>
+        <div class="mental-flow learn-only" aria-label="VPN configuration mental flow">
+          <div class="flow-card"><small>1</small><strong>Requirement</strong><span>Who or what must connect?</span></div>
+          <div class="flow-card"><small>2</small><strong>Architecture</strong><span>Site, user, host; TLS or IPsec?</span></div>
+          <div class="flow-card"><small>3</small><strong>Peers</strong><span>Opposite public endpoint and selectors.</span></div>
+          <div class="flow-card"><small>4</small><strong>Negotiate</strong><span>IKE authenticates and creates keys.</span></div>
+          <div class="flow-card"><small>5</small><strong>Protect</strong><span>ESP carries selected user traffic.</span></div>
+          <div class="flow-card"><small>6</small><strong>Path + policy</strong><span>Firewall, NAT, routing, authorization.</span></div>
+          <div class="flow-card"><small>7</small><strong>Validate</strong><span>IKE SA → CHILD_SA → application.</span></div>
+        </div>
+        <details class="training" open><summary>Gap-targeted briefing</summary><p><strong>Use this anchor:</strong> network-to-network points to site-to-site IPsec; user-to-application often points to TLS remote access. IKE is the control plane that authenticates and negotiates. ESP is the data plane that protects selected packets. A working tunnel still needs routing and authorization.</p></details>
+        <div class="screen-nav"><span></span><div class="right"><button class="btn btn-primary next-btn" type="button">Inspect topology</button></div></div>
+      </section>
+
+      <section class="screen" data-screen="topology" aria-labelledby="topologyHeading">
+        <div class="screen-head">
+          <div><div class="screen-kicker">Step 1 • Map</div><h2 id="topologyHeading">Network topology</h2><p>Public peers terminate the tunnel; private protected networks become the traffic selectors inside it.</p></div>
+          <div class="screen-badge" id="natBadge">Direct path</div>
+        </div>
+        <div class="topology-frame">
+          <svg class="topology" viewBox="0 0 1160 520" role="img" aria-labelledby="topologyTitle topologyDesc">
+            <title id="topologyTitle">Branch-to-headquarters IPsec VPN topology</title>
+            <desc id="topologyDesc">Branch users connect through a branch protected network and VPN gateway, across the Internet, to a headquarters VPN gateway, protected network, and approved application. The tunnel runs between the VPN gateways.</desc>
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#496677"/></marker>
+              <marker id="tunnelArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ae94ff"/></marker>
+            </defs>
+            <rect class="zone" x="18" y="45" width="330" height="430" rx="18"/>
+            <rect class="zone" x="812" y="45" width="330" height="430" rx="18"/>
+            <text class="zone-label" x="40" y="74">BRANCH SITE</text>
+            <text class="zone-label" x="834" y="74">HEADQUARTERS</text>
+            <path class="link" d="M182 177V238M182 328V390" marker-end="url(#arrow)"/>
+            <path class="link" d="M348 283H435M725 283H812" marker-end="url(#arrow)"/>
+            <path class="tunnel" id="tunnelPath" d="M300 265C430 180 730 180 860 265" marker-end="url(#tunnelArrow)"/>
+            <g><rect class="node" x="72" y="105" width="220" height="72" rx="13"/><text x="182" y="134" text-anchor="middle">Branch users</text><text class="sub" id="branchUserLabel" x="182" y="157" text-anchor="middle">Approved source</text></g>
+            <g><rect class="node" x="72" y="238" width="220" height="90" rx="13"/><rect class="node-bar" x="72" y="238" width="220" height="14" rx="10"/><text x="182" y="278" text-anchor="middle">BRANCH-VPN</text><text class="sub" id="branchPublicLabel" x="182" y="301" text-anchor="middle">203.0.113.20</text><text class="micro" id="branchNetLabel" x="182" y="319" text-anchor="middle">Protected: 10.20.0.0/16</text></g>
+            <g id="natNode" hidden><rect class="nat" x="355" y="238" width="122" height="58" rx="12"/><text x="416" y="263" text-anchor="middle">EDGE NAT</text><text class="micro" x="416" y="282" text-anchor="middle">NAT-T required</text></g>
+            <g><path d="M505 234c12-33 50-45 74-22 23-39 84-25 85 20 37 2 45 57 8 70H510c-45-4-47-64-5-68z" fill="#102b3b" stroke="#477185" stroke-width="2"/><text x="584" y="258" text-anchor="middle">Internet</text><text class="sub" x="584" y="281" text-anchor="middle">Untrusted transit</text></g>
+            <g><rect class="node" x="868" y="238" width="220" height="90" rx="13"/><rect class="node-bar" x="868" y="238" width="220" height="14" rx="10"/><text x="978" y="278" text-anchor="middle">HQ-VPN</text><text class="sub" id="hqPublicLabel" x="978" y="301" text-anchor="middle">198.51.100.10</text><text class="micro" id="hqNetLabel" x="978" y="319" text-anchor="middle">Protected: 10.10.0.0/16</text></g>
+            <g><rect class="node" x="868" y="390" width="220" height="64" rx="13"/><text x="978" y="417" text-anchor="middle">Approved HQ app</text><text class="sub" id="appLabel" x="978" y="439" text-anchor="middle">10.10.20.0/24 • HTTPS</text></g>
+            <text class="micro" x="580" y="169" text-anchor="middle">IPsec tunnel: encrypted inner packet + new outer gateway header</text>
+          </svg>
+        </div>
+        <div class="topology-legend"><span><i class="legend-line"></i>Routed path</span><span><i class="legend-line tunnel"></i>IPsec tunnel</span><span><i class="legend-line protected"></i>Validated protected traffic</span></div>
+        <div class="topology-notes">
+          <div class="topology-note"><strong>Outer packet</strong><span id="outerPacket">Branch public → HQ public</span></div>
+          <div class="topology-note"><strong>Inner packet</strong><span id="innerPacket">Branch protected → HQ protected</span></div>
+          <div class="topology-note"><strong>Direction rule</strong><span>“Local” changes when you switch gateway perspective.</span></div>
+        </div>
+        <details class="training"><summary>Why selectors get reversed</summary><p>At HQ, the HQ network is local and the Branch network is remote. At Branch, those values reverse. Both devices describe the same protected flow from their own perspective.</p></details>
+        <div class="screen-nav"><button class="btn prev-btn" type="button">Back</button><div class="right"><button class="btn btn-primary next-btn" type="button">Choose architecture</button></div></div>
+      </section>
+
+      <section class="screen" data-screen="architecture" aria-labelledby="architectureTitle">
+        <div class="screen-head">
+          <div><div class="screen-kicker">Step 2 • Decide</div><h2 id="architectureTitle">Select the secure architecture</h2><p>Match the requirement to the connection model, protection technology, and packet mode.</p></div>
+          <div class="screen-badge">15 points</div>
+        </div>
+        <div class="choice-cards" id="architectureFields"></div>
+        <details class="training" open><summary>TLS vs IPsec decision rule</summary><p><strong>Think scope first.</strong> Site/network-to-site/network favors site-to-site IPsec. A remote individual accessing one web application often favors TLS. IPsec remote access and broader TLS tunnels are possible, so the requirement—not a slogan—controls the decision.</p></details>
+        <div class="screen-nav"><button class="btn prev-btn" type="button">Back</button><div class="right"><button class="btn btn-primary next-btn" type="button">Configure HQ</button></div></div>
+      </section>
+
+      <section class="screen" data-screen="hq" aria-labelledby="hqTitle">
+        <div class="screen-head">
+          <div><div class="screen-kicker">Step 3 • Endpoint A</div><h2 id="hqTitle">Configure the HQ gateway</h2><p>Work from the HQ gateway's perspective. Its peer and remote protected network are at the Branch.</p></div>
+          <div class="screen-badge">HQ viewpoint</div>
+        </div>
+        <div class="endpoint-banner"><div class="device-icon">HQ</div><div><strong>HQ-VPN</strong><small id="hqIdentity">vpn-hq.example.test</small></div><code id="hqLocalGateway">198.51.100.10</code></div>
+        <div id="hqFields"></div>
+        <div class="screen-nav"><button class="btn prev-btn" type="button">Back</button><div class="right"><button class="btn btn-primary next-btn" type="button">Configure Branch</button></div></div>
+      </section>
+
+      <section class="screen" data-screen="branch" aria-labelledby="branchTitle">
+        <div class="screen-head">
+          <div><div class="screen-kicker">Step 4 • Endpoint B</div><h2 id="branchTitle">Configure the Branch gateway</h2><p>Mirror the tunnel from the Branch perspective. The peer and selector values must reverse cleanly.</p></div>
+          <div class="screen-badge">Branch viewpoint</div>
+        </div>
+        <div class="endpoint-banner"><div class="device-icon">BR</div><div><strong>BRANCH-VPN</strong><small id="branchIdentity">vpn-branch.example.test</small></div><code id="branchLocalGateway">203.0.113.20</code></div>
+        <div id="branchFields"></div>
+        <details class="training"><summary>Phase 1 / Phase 2 translation</summary><p>Many products label IKE settings “Phase 1” and IPsec settings “Phase 2.” For IKEv2, the more precise model is an <strong>IKE SA</strong> plus one or more <strong>CHILD_SAs</strong>. The familiar labels are shown only to help you transfer across interfaces.</p></details>
+        <div class="screen-nav"><button class="btn prev-btn" type="button">Back</button><div class="right"><button class="btn btn-primary next-btn" type="button">Open the path</button></div></div>
+      </section>
+
+      <section class="screen" data-screen="path" aria-labelledby="pathTitle">
+        <div class="screen-head">
+          <div><div class="screen-kicker">Step 5 • Path + policy</div><h2 id="pathTitle">Configure firewall, NAT, and access</h2><p>Permit only the traffic this exact path requires, then restrict what authenticated tunnel traffic may reach.</p></div>
+          <div class="screen-badge">15 points</div>
+        </div>
+        <div class="table-scroll">
+          <table class="path-table">
+            <thead><tr><th>Candidate traffic</th><th>Type</th><th>Role</th><th>Decision</th></tr></thead>
+            <tbody id="pathRows"></tbody>
+          </table>
+        </div>
+        <div class="config-group"><div class="group-head"><div><h3>NAT behavior</h3><p id="natRequirement">Apply the scenario's NAT requirement without translating protected inner traffic.</p></div></div><div class="form-grid" id="natFields"></div></div>
+        <div class="config-group"><div class="group-head"><div><h3>Post-tunnel least privilege</h3><p>A VPN provides a protected path; this rule decides what the connected network is authorized to use.</p></div></div><div class="form-grid" id="accessFields"></div></div>
+        <details class="training"><summary>Port vs IP protocol checkpoint</summary><p>IKE uses <strong>UDP 500</strong>; NAT traversal uses <strong>UDP 4500</strong>. Native ESP is <strong>IP protocol 50</strong>, not TCP or UDP port 50. AH is IP protocol 51, adds no encryption, and is generally incompatible with NAT.</p></details>
+        <div class="screen-nav"><button class="btn prev-btn" type="button">Back</button><div class="right"><button class="btn btn-primary next-btn" type="button">Validate tunnel</button></div></div>
+      </section>
+
+      <section class="screen" data-screen="validate" aria-labelledby="validateTitle">
+        <div class="screen-head">
+          <div><div class="screen-kicker">Step 6 • Evidence</div><h2 id="validateTitle">Validate layer by layer</h2><p>Do not stop at “tunnel up.” Check the IKE SA, the CHILD_SA/traffic selectors, and the authorized application path separately.</p></div>
+          <div class="screen-badge">10 points</div>
+        </div>
+        <div class="validation-grid">
+          <article class="test-card"><h3>1. IKE control plane</h3><p>Tests peer reachability, negotiation, authentication, and IKE policy.</p><button class="btn test-btn" type="button" data-test="ike">Run IKE test</button><div class="test-output" id="ikeOutput" aria-live="polite">Not run.</div></article>
+          <article class="test-card"><h3>2. IPsec data plane</h3><p>Tests selectors, ESP proposal, tunnel mode, and CHILD_SA creation.</p><button class="btn test-btn" type="button" data-test="child">Run CHILD_SA test</button><div class="test-output" id="childOutput" aria-live="polite">Not run.</div></article>
+          <article class="test-card"><h3>3. Protected traffic</h3><p>Tests the approved HTTPS flow after the security associations exist.</p><button class="btn test-btn" type="button" data-test="data">Run traffic test</button><div class="test-output" id="dataOutput" aria-live="polite">Not run.</div></article>
+        </div>
+        <div class="config-group"><div class="form-grid" id="validationFields"></div></div>
+        <details class="training"><summary>How to read the failure layer</summary><p>No IKE SA points to reachability, UDP 500/4500, peers, authentication, or IKE proposal. IKE up but no CHILD_SA points to traffic selectors or ESP proposal. Both SAs up but application traffic fails points to routing, ACLs, or application reachability.</p></details>
+        <div class="screen-nav"><button class="btn prev-btn" type="button">Back</button><div class="right"><button class="btn btn-primary next-btn" type="button">Prepare submission</button></div></div>
+      </section>
+
+      <section class="screen" data-screen="submit" aria-labelledby="submitTitle">
+        <div class="screen-head">
+          <div><div class="screen-kicker">Step 7 • Lock attempt</div><h2 id="submitTitle">Submit the configuration</h2><p>Submission locks the attempt and calculates weighted partial credit by skill category.</p></div>
+          <div class="screen-badge">100 points</div>
+        </div>
+        <div class="submit-panel">
+          <h3 id="submitHeadline">Ready for your decision</h3>
+          <p class="score-preview" id="submitPreview">Unanswered values are scored as incorrect. You may go back before submitting.</p>
+          <div class="hero-actions" style="justify-content:center"><button class="btn btn-primary" id="submitBtn" type="button">Submit SecureLink PBQ</button><button class="btn" id="returnBtn" type="button">Return to configuration</button></div>
+          <div class="notice warn" id="incompleteNotice" style="display:none;margin-top:16px" aria-live="polite"></div>
+        </div>
+        <div class="screen-nav"><button class="btn prev-btn" type="button">Back</button><span></span></div>
+      </section>
+
+      <section class="screen" data-screen="review" aria-labelledby="reviewTitle">
+        <div class="screen-head">
+          <div><div class="screen-kicker">Step 8 • Debrief</div><h2 id="reviewTitle">Results and targeted remediation</h2><p>Use the category breakdown to decide what to retry—not only what to reread.</p></div>
+          <div class="screen-badge">Review mode</div>
+        </div>
+        <div class="results" id="results" aria-live="polite">
+          <div class="score-hero"><div class="score-ring" id="scoreRing"><strong id="totalScore">0%</strong></div><div class="score-copy"><h3 id="resultHeadline">Attempt scored</h3><p id="resultMessage"></p></div></div>
+          <div class="category-results" id="categoryResults"></div>
+          <div class="remediation" id="remediation"></div>
+          <div class="hero-actions"><button class="btn btn-primary" id="retryBtn" type="button">Retry missed decisions</button><button class="btn" id="fullResetBtn" type="button">Reset full attempt</button><button class="btn btn-violet" id="newReviewScenarioBtn" type="button">Try another scenario</button></div>
+        </div>
+        <div class="notice" id="noResults">Submit the PBQ to unlock the debrief.</div>
+      </section>
+    </div>
+  </div>
+  <footer class="footer">Independent Security+ SY0-701 practice simulation • Original scenario data • Not affiliated with or endorsed by CompTIA</footer>
+</main>
+
+<script>
+window.VPN_MODEL = (() => {
+  const CATEGORY_WEIGHTS = { architecture: 15, peers: 15, selectors: 15, ike: 15, ipsec: 15, path: 10, access: 5, validation: 10 };
+  const CATEGORY_LABELS = { architecture: 'Architecture and mode', peers: 'Peer pairing', selectors: 'Protected networks', ike: 'IKE and authentication', ipsec: 'IPsec data protection', path: 'Firewall and NAT-T', access: 'Post-tunnel access', validation: 'Validation evidence' };
+  const ENDPOINT_FIELDS = ['peer', 'localNetwork', 'remoteNetwork', 'ikeVersion', 'authentication', 'ikeCipher', 'ikePrf', 'dhGroup', 'dataProtocol', 'dataMode', 'espSuite', 'pfs'];
+  const SCENARIOS = [
+    {
+      id: 'VPN-701-A', title: 'Northstar branch cutover', nat: false, auth: 'Certificate',
+      hq: { public: '198.51.100.10', network: '10.10.0.0/16', identity: 'vpn-hq.example.test', app: '10.10.20.0/24' },
+      branch: { public: '203.0.113.20', network: '10.20.0.0/16', identity: 'vpn-branch.example.test', users: '10.20.40.0/24' },
+      summary: 'Connect the Branch network to HQ through two security gateways. Protect all site-to-site IP traffic, but authorize Branch users only to the HQ payroll application over HTTPS.',
+      requirement: 'No address translation exists between the two VPN gateways.'
+    },
+    {
+      id: 'VPN-701-B', title: 'Atlas office integration', nat: true, auth: 'Pre-shared key',
+      hq: { public: '192.0.2.10', network: '10.30.0.0/16', identity: 'vpn-hq.atlas.example.test', app: '10.30.25.0/24' },
+      branch: { public: '198.51.100.22', network: '10.40.0.0/16', identity: 'vpn-branch.atlas.example.test', users: '10.40.60.0/24' },
+      summary: 'Connect the acquired office to HQ with a temporary, policy-approved strong shared secret. An upstream device translates the Branch gateway path. Limit tunneled access to the HR portal over HTTPS.',
+      requirement: 'NAT is present on the Branch path; NAT traversal is required.'
+    },
+    {
+      id: 'VPN-701-C', title: 'Cobalt resilience link', nat: true, auth: 'Certificate',
+      hq: { public: '203.0.113.10', network: '172.20.0.0/16', identity: 'vpn-hq.cobalt.example.test', app: '172.20.50.0/24' },
+      branch: { public: '192.0.2.20', network: '172.21.0.0/16', identity: 'vpn-branch.cobalt.example.test', users: '172.21.12.0/24' },
+      summary: 'Build a certificate-authenticated resilience tunnel between the Branch and HQ gateways. NAT exists in the transit path. Branch operations users need only HTTPS access to the HQ status application.',
+      requirement: 'A transit NAT device is detected; preserve the protected inner addresses and use NAT-T.'
+    }
+  ];
+  const OPTIONS = {
+    architecture: {
+      connectionType: ['Site-to-site (gateway-to-gateway)', 'Remote access (host-to-gateway)', 'Host-to-host', 'Clientless application portal'],
+      vpnTechnology: ['IPsec', 'TLS remote-access VPN', 'SSH local forwarding', 'GRE without IPsec'],
+      architectureMode: ['Tunnel mode', 'Transport mode', 'Split tunnel', 'Full tunnel']
+    },
+    endpoint: {
+      ikeVersion: ['IKEv2', 'IKEv1 aggressive mode', 'TLS 1.3', 'PPTP'],
+      authentication: ['Certificate', 'Pre-shared key', 'Password only', 'Anonymous'],
+      ikeCipher: ['AES-256', 'AES-128', '3DES', 'DES'],
+      ikePrf: ['SHA-256', 'SHA-1', 'MD5', 'None'],
+      dhGroup: ['Group 19 (ECDH P-256)', 'Group 14 (2048-bit MODP)', 'Group 5 (1536-bit MODP)', 'Group 1 (768-bit MODP)'],
+      dataProtocol: ['ESP', 'AH', 'GRE', 'TLS'],
+      dataMode: ['Tunnel mode', 'Transport mode', 'Split tunnel', 'Full tunnel'],
+      espSuite: ['AES-256-GCM (AEAD)', 'AES-256-CBC + SHA-256', '3DES + SHA-1', 'Null encryption + SHA-256'],
+      pfs: ['Group 19 (PFS)', 'Group 14 (PFS)', 'Disabled', 'Group 1 (PFS)']
+    },
+    pathDecision: ['Allow', 'Block'],
+    natPolicy: ['NAT exemption for protected traffic; direct ESP', 'NAT-T on UDP 4500; preserve protected inner addresses', 'Source-NAT the protected networks into one address', 'Disable IPsec when NAT is detected'],
+    accessService: ['TCP 443 (HTTPS)', 'TCP 22 (SSH)', 'UDP 53 (DNS)', 'Any service'],
+    accessAction: ['Allow', 'Block'],
+    defaultPolicy: ['Deny all other tunneled traffic', 'Allow all other tunneled traffic', 'No post-tunnel policy'],
+    conclusion: ['IKE SA and CHILD_SA established; approved HTTPS passes', 'IKE failed before peer authentication', 'IKE established but CHILD_SA failed', 'Both SAs established but all traffic is blocked']
+  };
+  const PATH_ROWS = [
+    ['udp500', 'UDP 500', 'UDP port', 'IKE negotiation'],
+    ['udp4500', 'UDP 4500', 'UDP port', 'IPsec NAT traversal'],
+    ['esp50', 'ESP 50', 'IP protocol', 'Native encrypted IPsec payload'],
+    ['ah51', 'AH 51', 'IP protocol', 'Integrity/authentication without encryption'],
+    ['tcp443', 'TCP 443', 'TCP port', 'Common TLS/HTTPS connectivity'],
+    ['udp443', 'UDP 443', 'UDP port', 'Possible QUIC/DTLS product traffic']
+  ];
+  function endpointExpected(local, remote, scenario) {
+    return {
+      peer: remote.public,
+      localNetwork: local.network,
+      remoteNetwork: remote.network,
+      ikeVersion: 'IKEv2',
+      authentication: scenario.auth,
+      ikeCipher: 'AES-256',
+      ikePrf: 'SHA-256',
+      dhGroup: 'Group 19 (ECDH P-256)',
+      dataProtocol: 'ESP',
+      dataMode: 'Tunnel mode',
+      espSuite: 'AES-256-GCM (AEAD)',
+      pfs: 'Group 19 (PFS)'
+    };
+  }
+  function expected(scenario) {
+    return {
+      architecture: { connectionType: 'Site-to-site (gateway-to-gateway)', vpnTechnology: 'IPsec', architectureMode: 'Tunnel mode' },
+      hq: endpointExpected(scenario.hq, scenario.branch, scenario),
+      branch: endpointExpected(scenario.branch, scenario.hq, scenario),
+      path: {
+        udp500: 'Allow',
+        udp4500: scenario.nat ? 'Allow' : 'Block',
+        esp50: scenario.nat ? 'Block' : 'Allow',
+        ah51: 'Block', tcp443: 'Block', udp443: 'Block',
+        natPolicy: scenario.nat ? 'NAT-T on UDP 4500; preserve protected inner addresses' : 'NAT exemption for protected traffic; direct ESP'
+      },
+      access: { source: scenario.branch.users, destination: scenario.hq.app, service: 'TCP 443 (HTTPS)', action: 'Allow', defaultPolicy: 'Deny all other tunneled traffic' },
+      validation: { conclusion: 'IKE SA and CHILD_SA established; approved HTTPS passes' }
+    };
+  }
+  function blankAnswers() {
+    return { architecture: {}, hq: {}, branch: {}, path: {}, access: {}, validation: { ran: { ike: false, child: false, data: false } } };
+  }
+  function checksForCategory(category, answers, target) {
+    const eq = (group, key) => ({ key: group + '.' + key, actual: answers[group]?.[key], expected: target[group][key], correct: answers[group]?.[key] === target[group][key] });
+    if (category === 'architecture') return ['connectionType', 'vpnTechnology', 'architectureMode'].map(key => eq('architecture', key));
+    if (category === 'peers') return ['hq', 'branch'].map(group => eq(group, 'peer'));
+    if (category === 'selectors') return ['hq', 'branch'].flatMap(group => ['localNetwork', 'remoteNetwork'].map(key => eq(group, key)));
+    if (category === 'ike') return ['hq', 'branch'].flatMap(group => ['ikeVersion', 'authentication', 'ikeCipher', 'ikePrf', 'dhGroup'].map(key => eq(group, key)));
+    if (category === 'ipsec') return ['hq', 'branch'].flatMap(group => ['dataProtocol', 'dataMode', 'espSuite', 'pfs'].map(key => eq(group, key)));
+    if (category === 'path') return ['udp500', 'udp4500', 'esp50', 'ah51', 'tcp443', 'udp443', 'natPolicy'].map(key => eq('path', key));
+    if (category === 'access') return ['source', 'destination', 'service', 'action', 'defaultPolicy'].map(key => eq('access', key));
+    if (category === 'validation') {
+      const ran = ['ike', 'child', 'data'].map(key => ({ key: 'validation.ran.' + key, actual: !!answers.validation?.ran?.[key], expected: true, correct: !!answers.validation?.ran?.[key], factor: .1 }));
+      return ran.concat([{ key: 'validation.conclusion', actual: answers.validation?.conclusion, expected: target.validation.conclusion, correct: answers.validation?.conclusion === target.validation.conclusion, factor: .7 }]);
+    }
+    return [];
+  }
+  function score(scenario, answers) {
+    const target = expected(scenario);
+    const categories = {};
+    const misses = [];
+    let total = 0;
+    for (const [category, weight] of Object.entries(CATEGORY_WEIGHTS)) {
+      const checks = checksForCategory(category, answers, target);
+      let fraction;
+      if (category === 'validation') fraction = checks.reduce((sum, check) => sum + (check.correct ? check.factor : 0), 0);
+      else fraction = checks.length ? checks.filter(check => check.correct).length / checks.length : 0;
+      const points = Math.round(fraction * weight * 10) / 10;
+      total += points;
+      categories[category] = { label: CATEGORY_LABELS[category], weight, points, pct: Math.round(fraction * 100), checks };
+      checks.filter(check => !check.correct).forEach(check => misses.push({ category, ...check }));
+    }
+    return { points: Math.round(total), pct: Math.round(total), categories, misses, target };
+  }
+  function groupCorrect(group, keys, answers, target) { return keys.every(key => answers[group]?.[key] === target[group][key]); }
+  function diagnose(scenario, answers, layer) {
+    const target = expected(scenario);
+    if (!groupCorrect('architecture', ['connectionType', 'vpnTechnology', 'architectureMode'], answers, target)) return { ok: false, code: 'ARCH-MISMATCH', line: 'Selected architecture cannot build the required gateway-to-gateway IPsec tunnel.', focus: 'Re-read who connects to whom and at which layer.' };
+    if (!groupCorrect('hq', ['peer'], answers, target) || !groupCorrect('branch', ['peer'], answers, target)) return { ok: false, code: 'IKE-PEER-UNREACHABLE', line: 'Peer pairing does not mirror the two public gateway addresses.', focus: 'Each endpoint peer must be the opposite gateway.' };
+    const ikeKeys = ['ikeVersion', 'authentication', 'ikeCipher', 'ikePrf', 'dhGroup'];
+    if (!groupCorrect('hq', ikeKeys, answers, target) || !groupCorrect('branch', ikeKeys, answers, target)) return { ok: false, code: 'IKE-NO-MATCH', line: 'IKE negotiation or authentication policy does not match across the peers.', focus: 'Compare IKE version, authentication, encryption, PRF, and DH group.' };
+    if (answers.path?.udp500 !== 'Allow') return { ok: false, code: 'PATH-IKE-BLOCKED', line: 'IKE initiation cannot reach the peer on UDP 500.', focus: 'Verify the negotiation path before inspecting crypto.' };
+    if (scenario.nat && answers.path?.udp4500 !== 'Allow') return { ok: false, code: 'PATH-NATT-BLOCKED', line: 'NAT was detected, but UDP 4500 cannot carry the encapsulated IPsec traffic.', focus: 'NAT-T changes the outer path, not the inner protected addresses.' };
+    if (!scenario.nat && answers.path?.esp50 !== 'Allow') return { ok: false, code: 'PATH-ESP-BLOCKED', line: 'Native ESP (IP protocol 50) cannot cross the path.', focus: 'ESP is an IP protocol, not a TCP/UDP port.' };
+    if (layer === 'ike') return { ok: true, code: 'IKE-SA-ESTABLISHED', line: 'Peers authenticated and the IKE SA is established.', focus: 'Next verify selectors and the CHILD_SA.' };
+    if (!groupCorrect('hq', ['localNetwork', 'remoteNetwork'], answers, target) || !groupCorrect('branch', ['localNetwork', 'remoteNetwork'], answers, target)) return { ok: false, code: 'CHILD-TS-MISMATCH', line: 'IKE is up, but the protected traffic selectors do not mirror.', focus: 'Reverse local and remote networks at the opposite endpoint.' };
+    const ipsecKeys = ['dataProtocol', 'dataMode', 'espSuite', 'pfs'];
+    if (!groupCorrect('hq', ipsecKeys, answers, target) || !groupCorrect('branch', ipsecKeys, answers, target)) return { ok: false, code: 'CHILD-PROPOSAL-MISMATCH', line: 'IKE is up, but the IPsec data-plane proposal cannot create a CHILD_SA.', focus: 'Compare ESP, mode, cipher suite, and PFS.' };
+    if (answers.path?.natPolicy !== target.path.natPolicy) return { ok: false, code: 'CHILD-NAT-POLICY', line: 'The path translates or handles protected traffic incorrectly.', focus: 'Preserve inner protected addresses; use NAT-T only when the outer path needs it.' };
+    if (layer === 'child') return { ok: true, code: 'CHILD-SA-INSTALLED', line: 'Traffic selectors match and the ESP CHILD_SA is installed.', focus: 'Next validate routing and the post-tunnel access rule.' };
+    if (!groupCorrect('access', ['source', 'destination', 'service', 'action', 'defaultPolicy'], answers, target)) return { ok: false, code: 'DATA-POLICY-DENY', line: 'Both SAs are up, but the approved application flow fails the post-tunnel policy.', focus: 'The VPN protects transport; authorization still controls resource access.' };
+    return { ok: true, code: 'DATA-PASS', line: 'Approved Branch HTTPS traffic reaches the HQ application through the protected tunnel.', focus: 'Configuration meets the stated requirement and least-privilege constraint.' };
+  }
+  function allFieldRefs() {
+    return [
+      ...Object.keys(OPTIONS.architecture).map(key => ['architecture', key]),
+      ...['hq', 'branch'].flatMap(group => ENDPOINT_FIELDS.map(key => [group, key])),
+      ...PATH_ROWS.map(row => ['path', row[0]]), ['path', 'natPolicy'],
+      ...['source', 'destination', 'service', 'action', 'defaultPolicy'].map(key => ['access', key]),
+      ['validation', 'conclusion']
+    ];
+  }
+  return { CATEGORY_WEIGHTS, CATEGORY_LABELS, ENDPOINT_FIELDS, SCENARIOS, OPTIONS, PATH_ROWS, expected, blankAnswers, score, diagnose, allFieldRefs };
+})();
+</script>
+<script>
+(() => {
+  const M = window.VPN_MODEL;
+  const $ = id => document.getElementById(id);
+  const app = $('app');
+  const steps = [
+    ['mission', 'Mission', 'Requirement'], ['topology', 'Topology', 'Map the path'], ['architecture', 'Architecture', 'Choose design'],
+    ['hq', 'HQ gateway', 'Endpoint A'], ['branch', 'Branch gateway', 'Endpoint B'], ['path', 'Firewall + NAT', 'Open minimally'],
+    ['validate', 'Validate', 'Read evidence'], ['submit', 'Submit', 'Lock attempt'], ['review', 'Debrief', 'Target gaps']
+  ];
+  const fieldLabels = {
+    peer: ['Remote peer address', 'The opposite gateway public address'],
+    localNetwork: ['Local protected network', 'Traffic selector behind this gateway'],
+    remoteNetwork: ['Remote protected network', 'Traffic selector behind the peer'],
+    ikeVersion: ['IKE version', 'Negotiation protocol'],
+    authentication: ['Gateway authentication', 'How peers establish trust'],
+    ikeCipher: ['IKE encryption', 'Protects IKE messages'],
+    ikePrf: ['IKE PRF / integrity', 'Key derivation and IKE integrity choice'],
+    dhGroup: ['Key-exchange group', 'Builds shared keying material'],
+    dataProtocol: ['IPsec data protocol', 'Protects selected user packets'],
+    dataMode: ['IPsec packet mode', 'How the original IP packet is handled'],
+    espSuite: ['ESP encryption suite', 'Data-plane confidentiality and integrity'],
+    pfs: ['Perfect forward secrecy', 'Fresh key exchange for the CHILD_SA']
+  };
+  const remediationText = {
+    architecture: 'Map the requirement before selecting a technology: two networks through gateways means site-to-site IPsec in tunnel mode.',
+    peers: 'Every gateway points to the opposite public endpoint. Never enter the local public address as its own peer.',
+    selectors: 'Local and remote protected networks reverse when the viewpoint changes from HQ to Branch.',
+    ike: 'IKE authenticates peers and negotiates the control-plane SA. Both ends need compatible version, authentication, encryption, PRF, and key exchange.',
+    ipsec: 'ESP carries protected user traffic. Tunnel mode protects the full inner packet; AES-GCM already provides authenticated encryption.',
+    path: 'UDP 500 starts IKE. NAT paths need UDP 4500; direct paths need native ESP protocol 50. AH is not encrypted and conflicts with NAT.',
+    access: 'A VPN does not grant blanket access. Authorize the required source, destination, and service, then deny other tunneled traffic.',
+    validation: 'Validate in order: IKE SA, CHILD_SA, then application flow. The first failing layer narrows the root cause.'
+  };
+  let scenarioIndex = 0;
+  let scenario = M.SCENARIOS[scenarioIndex];
+  let answers = M.blankAnswers();
+  let activeStep = 0;
+  let mode = 'learn';
+  let submitted = false;
+  let lastScore = null;
+  let startTime = Date.now();
+  let timerId;
+
+  function esc(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]); }
+  function uniq(values) { return [...new Set(values)]; }
+  function selectMarkup(group, key, label, help, options) {
+    const value = answers[group]?.[key] || '';
+    return '<div class="field" data-field="' + esc(group + '.' + key) + '"><label for="' + esc(group + '-' + key) + '">' + esc(label) + '<small>' + esc(help) + '</small></label><select id="' + esc(group + '-' + key) + '" data-group="' + esc(group) + '" data-key="' + esc(key) + '" ' + (submitted ? 'disabled' : '') + '><option value="">Select…</option>' + options.map(option => '<option value="' + esc(option) + '"' + (value === option ? ' selected' : '') + '>' + esc(option) + '</option>').join('') + '</select><span class="field-note"></span></div>';
+  }
+  function endpointOptions(key) {
+    if (key === 'peer') return uniq(M.SCENARIOS.flatMap(item => [item.hq.public, item.branch.public])).concat(['10.0.0.1']);
+    if (key === 'localNetwork' || key === 'remoteNetwork') return uniq(M.SCENARIOS.flatMap(item => [item.hq.network, item.branch.network])).concat(['0.0.0.0/0']);
+    return M.OPTIONS.endpoint[key];
+  }
+  function renderStepper() {
+    $('stepper').innerHTML = steps.map((step, index) => '<button class="step-button' + (stepComplete(index) ? ' complete' : '') + '" type="button" data-step="' + index + '" ' + (index === activeStep ? 'aria-current="step"' : '') + '><span class="step-number">' + index + '</span><span class="step-label"><strong>' + esc(step[1]) + '</strong><small>' + esc(step[2]) + '</small></span></button>').join('');
+    document.querySelectorAll('.step-button').forEach(button => button.addEventListener('click', () => showStep(Number(button.dataset.step))));
+  }
+  function stepFieldRefs(index) {
+    if (index === 2) return Object.keys(M.OPTIONS.architecture).map(key => ['architecture', key]);
+    if (index === 3 || index === 4) return M.ENDPOINT_FIELDS.map(key => [index === 3 ? 'hq' : 'branch', key]);
+    if (index === 5) return [...M.PATH_ROWS.map(row => ['path', row[0]]), ['path', 'natPolicy'], ...['source', 'destination', 'service', 'action', 'defaultPolicy'].map(key => ['access', key])];
+    if (index === 6) return [['validation', 'conclusion']];
+    return [];
+  }
+  function stepComplete(index) { const refs = stepFieldRefs(index); return refs.length > 0 && refs.every(([group, key]) => !!answers[group]?.[key]); }
+  function showStep(index) {
+    activeStep = Math.max(0, Math.min(steps.length - 1, index));
+    document.querySelectorAll('.screen').forEach((screen, i) => screen.classList.toggle('active', i === activeStep));
+    renderStepper();
+    if (activeStep === 7) updateSubmitPreview();
+    if (activeStep === 8) renderResults();
+    document.querySelector('.screen.active')?.focus?.({ preventScroll: true });
+    window.scrollTo({ top: Math.max(0, document.querySelector('.workspace').offsetTop - 12), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+  function renderScenario() {
+    $('scenarioCode').textContent = scenario.id;
+    $('missionBadge').textContent = scenario.title;
+    $('scenarioSummary').innerHTML = '<strong>' + esc(scenario.title) + '</strong><br>' + esc(scenario.summary);
+    $('facts').innerHTML = [
+      ['HQ gateway', scenario.hq.public], ['Branch gateway', scenario.branch.public], ['HQ protected', scenario.hq.network], ['Branch protected', scenario.branch.network],
+      ['HQ identity', scenario.hq.identity], ['Branch identity', scenario.branch.identity], ['Approved source', scenario.branch.users], ['Approved destination', scenario.hq.app + ' • HTTPS']
+    ].map(item => '<div class="fact"><small>' + esc(item[0]) + '</small><strong>' + esc(item[1]) + '</strong></div>').join('');
+    $('requirements').innerHTML = [
+      'Use a gateway-to-gateway design that protects full IP packets between the two private networks.',
+      'Use ' + scenario.auth.toLowerCase() + ' gateway authentication and modern cryptography.',
+      scenario.requirement,
+      'Allow ' + scenario.branch.users + ' to reach ' + scenario.hq.app + ' only on TCP 443; deny other tunneled traffic.',
+      'Validate the IKE SA, the IPsec CHILD_SA, and the approved application flow.'
+    ].map(item => '<li>' + esc(item) + '</li>').join('');
+    $('natBadge').textContent = scenario.nat ? 'NAT detected • NAT-T path' : 'No NAT • Native ESP path';
+    $('natRequirement').textContent = scenario.requirement;
+    $('natNode').hidden = !scenario.nat;
+    $('branchPublicLabel').textContent = scenario.branch.public;
+    $('branchNetLabel').textContent = 'Protected: ' + scenario.branch.network;
+    $('hqPublicLabel').textContent = scenario.hq.public;
+    $('hqNetLabel').textContent = 'Protected: ' + scenario.hq.network;
+    $('branchUserLabel').textContent = scenario.branch.users;
+    $('appLabel').textContent = scenario.hq.app + ' • HTTPS';
+    $('outerPacket').textContent = scenario.branch.public + ' → ' + scenario.hq.public;
+    $('innerPacket').textContent = scenario.branch.users + ' → ' + scenario.hq.app;
+    $('hqIdentity').textContent = scenario.hq.identity;
+    $('branchIdentity').textContent = scenario.branch.identity;
+    $('hqLocalGateway').textContent = scenario.hq.public;
+    $('branchLocalGateway').textContent = scenario.branch.public;
+  }
+  function renderArchitecture() {
+    const data = [
+      ['connectionType', 'Connection model', 'Who or what forms each endpoint?'],
+      ['vpnTechnology', 'Protection technology', 'Which protocol family fits the network scope?'],
+      ['architectureMode', 'Packet mode', 'What happens to the original IP packet?']
+    ];
+    $('architectureFields').innerHTML = data.map(([key, label, help]) => '<article class="choice-card"><strong>' + esc(label) + '</strong><p>' + esc(help) + '</p>' + selectMarkup('architecture', key, label, help, M.OPTIONS.architecture[key]) + '</article>').join('');
+  }
+  function renderEndpoint(group) {
+    const path = answers[group] || {};
+    answers[group] = path;
+    const identity = group === 'hq' ? scenario.hq.identity : scenario.branch.identity;
+    const peerIdentity = group === 'hq' ? scenario.branch.identity : scenario.hq.identity;
+    const groups = [
+      ['Identity + protected networks', 'Define the peer and mirrored traffic selectors.', ['peer', 'localNetwork', 'remoteNetwork']],
+      ['IKE SA • familiar “Phase 1”', 'Authenticate the gateways and negotiate secure keying material.', ['ikeVersion', 'authentication', 'ikeCipher', 'ikePrf', 'dhGroup']],
+      ['CHILD_SA • familiar “Phase 2”', 'Protect the selected user traffic after IKE succeeds.', ['dataProtocol', 'dataMode', 'espSuite', 'pfs']]
+    ];
+    $(group + 'Fields').innerHTML = '<div class="notice"><strong>Local identity:</strong> ' + esc(identity) + ' &nbsp;•&nbsp; <strong>Expected peer identity:</strong> ' + esc(peerIdentity) + '</div>' + groups.map(([title, help, keys]) => '<section class="config-group"><div class="group-head"><div><h3>' + esc(title) + '</h3><p>' + esc(help) + '</p></div><span class="term-pair">' + (title.includes('IKE') ? 'CONTROL PLANE' : title.includes('CHILD') ? 'DATA PLANE' : 'VIEWPOINT') + '</span></div><div class="form-grid">' + keys.map(key => selectMarkup(group, key, fieldLabels[key][0], fieldLabels[key][1], endpointOptions(key))).join('') + '</div></section>').join('');
+  }
+  function renderPath() {
+    $('pathRows').innerHTML = M.PATH_ROWS.map(([key, traffic, type, role]) => '<tr><td><code>' + esc(traffic) + '</code></td><td>' + esc(type) + '</td><td>' + esc(role) + '</td><td>' + selectMarkup('path', key, traffic + ' decision', 'Allow only if required by this scenario', M.OPTIONS.pathDecision) + '</td></tr>').join('');
+    $('natFields').innerHTML = selectMarkup('path', 'natPolicy', 'NAT/IPsec handling', scenario.requirement, M.OPTIONS.natPolicy);
+    const networkOptions = uniq(M.SCENARIOS.flatMap(item => [item.branch.users, item.branch.network, item.hq.app, item.hq.network])).concat(['0.0.0.0/0']);
+    $('accessFields').innerHTML = [
+      selectMarkup('access', 'source', 'Authorized source', 'Use the narrow source group in the mission', networkOptions),
+      selectMarkup('access', 'destination', 'Authorized destination', 'Use the approved HQ application segment', networkOptions),
+      selectMarkup('access', 'service', 'Authorized service', 'Apply least privilege to the tunneled flow', M.OPTIONS.accessService),
+      selectMarkup('access', 'action', 'Rule action', 'Allow or block the named flow', M.OPTIONS.accessAction),
+      selectMarkup('access', 'defaultPolicy', 'Other tunneled traffic', 'Decide the default after the explicit rule', M.OPTIONS.defaultPolicy)
+    ].join('');
+  }
+  function renderValidation() {
+    $('validationFields').innerHTML = selectMarkup('validation', 'conclusion', 'Required final verification state', 'Choose the evidence that proves the mission is complete', M.OPTIONS.conclusion);
+    for (const type of ['ike', 'child', 'data']) {
+      const output = $(type + 'Output');
+      if (!answers.validation.ran[type]) { output.textContent = 'Not run.'; output.className = 'test-output'; }
+    }
+  }
+  function bindFields() {
+    document.querySelectorAll('select[data-group]').forEach(select => select.addEventListener('change', () => {
+      const { group, key } = select.dataset;
+      answers[group][key] = select.value;
+      submitted = false;
+      updateProgress();
+      renderStepper();
+      clearFieldState(group + '.' + key);
+    }));
+  }
+  function clearFieldState(ref) { const field = document.querySelector('[data-field="' + CSS.escape(ref) + '"]'); if (field) { field.classList.remove('correct', 'incorrect'); const note = field.querySelector('.field-note'); if (note) note.textContent = ''; } }
+  function renderForms() { renderArchitecture(); renderEndpoint('hq'); renderEndpoint('branch'); renderPath(); renderValidation(); bindFields(); }
+  function updateProgress() {
+    const refs = M.allFieldRefs();
+    const answered = refs.filter(([group, key]) => !!answers[group]?.[key]).length;
+    $('answered').textContent = answered;
+    $('answerTotal').textContent = refs.length;
+    $('decisionCount').textContent = refs.length;
+    $('progressFill').style.width = Math.round(answered / refs.length * 100) + '%';
+    document.querySelector('.progress').setAttribute('aria-valuemax', refs.length);
+    document.querySelector('.progress').setAttribute('aria-valuenow', answered);
+  }
+  function runTest(type) {
+    answers.validation.ran[type] = true;
+    const result = M.diagnose(scenario, answers, type);
+    const output = $(type + 'Output');
+    output.className = 'test-output ' + (result.ok ? 'good' : 'bad');
+    output.textContent = '[' + result.code + ']\n' + result.line + (mode === 'learn' ? '\nFocus: ' + result.focus : '');
+    if (type === 'data') $('tunnelPath').classList.toggle('live', result.ok);
+    renderStepper();
+  }
+  function updateSubmitPreview() {
+    const refs = M.allFieldRefs();
+    const missing = refs.filter(([group, key]) => !answers[group]?.[key]);
+    $('submitHeadline').textContent = missing.length ? missing.length + ' decisions are still blank' : 'All scored decisions are complete';
+    $('submitPreview').textContent = missing.length ? 'You can still submit, but blank values receive no credit.' : 'Review any step, or lock this attempt and reveal the weighted debrief.';
+    $('incompleteNotice').style.display = 'none';
+  }
+  function applyScoreToFields(score) {
+    document.querySelectorAll('.field').forEach(field => field.classList.remove('correct', 'incorrect'));
+    for (const data of Object.values(score.categories)) {
+      for (const check of data.checks) {
+        if (check.key.includes('.ran.')) continue;
+        const field = document.querySelector('[data-field="' + CSS.escape(check.key) + '"]');
+        if (!field) continue;
+        field.classList.add(check.correct ? 'correct' : 'incorrect');
+        const note = field.querySelector('.field-note');
+        if (note) note.textContent = check.correct ? 'Correct.' : 'Expected: ' + check.expected;
+      }
+    }
+  }
+  function submitAttempt() {
+    if (submitted) return;
+    const missing = M.allFieldRefs().filter(([group, key]) => !answers[group]?.[key]);
+    if (missing.length && $('incompleteNotice').style.display === 'none') {
+      $('incompleteNotice').style.display = 'block';
+      $('incompleteNotice').textContent = missing.length + ' decisions are blank. Select Submit again to lock them as incorrect, or return to the configuration.';
+      return;
+    }
+    submitted = true;
+    lastScore = M.score(scenario, answers);
+    clearInterval(timerId);
+    $('reviewBtn').disabled = false;
+    renderForms();
+    applyScoreToFields(lastScore);
+    showStep(8);
+  }
+  function renderResults() {
+    if (!submitted || !lastScore) { $('results').classList.remove('show'); $('noResults').style.display = 'block'; return; }
+    $('noResults').style.display = 'none';
+    $('results').classList.add('show');
+    $('totalScore').textContent = lastScore.pct + '%';
+    $('scoreRing').style.setProperty('--score-angle', Math.round(lastScore.pct * 3.6) + 'deg');
+    $('resultHeadline').textContent = lastScore.pct >= 90 ? 'Tunnel-ready reasoning' : lastScore.pct >= 75 ? 'Strong foundation; repair the weak layer' : 'Rebuild the tunnel in mental-flow order';
+    const firstFailure = M.diagnose(scenario, answers, 'data');
+    $('resultMessage').textContent = (firstFailure.ok ? 'The canonical path validates end to end. ' : 'First operational failure: ' + firstFailure.code + '. ') + 'Use the weighted categories below to target the next retrieval attempt.';
+    $('categoryResults').innerHTML = Object.entries(lastScore.categories).map(([category, data]) => '<div class="category-row"><strong>' + esc(data.label) + '</strong><div class="bar" aria-label="' + esc(data.label) + ' ' + data.pct + ' percent"><span style="width:' + data.pct + '%"></span></div><em>' + data.points + '/' + data.weight + '</em></div>').join('');
+    const weak = Object.entries(lastScore.categories).filter(([, data]) => data.pct < 100);
+    $('remediation').innerHTML = weak.length ? weak.map(([category, data]) => '<div class="remediation-item"><strong>' + esc(data.label) + ' • ' + data.pct + '%</strong><span>' + esc(remediationText[category]) + '</span></div>').join('') : '<div class="remediation-item good"><strong>All categories complete</strong><span>Now transfer the mental model: explain when a remote-user TLS VPN, full tunnel, or split tunnel would change the architecture and policy.</span></div>';
+  }
+  function retryMissed() {
+    if (!lastScore) return;
+    for (const miss of lastScore.misses) {
+      const parts = miss.key.split('.');
+      if (parts[1] === 'ran') answers.validation.ran[parts[2]] = false;
+      else if (answers[parts[0]]) answers[parts[0]][parts[1]] = '';
+    }
+    submitted = false;
+    lastScore = null;
+    startTime = Date.now();
+    $('reviewBtn').disabled = true;
+    $('tunnelPath').classList.remove('live');
+    renderForms();
+    updateProgress();
+    startTimer();
+    showStep(2);
+  }
+  function resetAttempt(newScenario) {
+    if (newScenario) scenarioIndex = (scenarioIndex + 1) % M.SCENARIOS.length;
+    scenario = M.SCENARIOS[scenarioIndex];
+    answers = M.blankAnswers();
+    submitted = false;
+    lastScore = null;
+    activeStep = 0;
+    startTime = Date.now();
+    $('reviewBtn').disabled = true;
+    $('tunnelPath').classList.remove('live');
+    for (const type of ['ike', 'child', 'data']) { const output = $(type + 'Output'); output.textContent = 'Not run.'; output.className = 'test-output'; }
+    renderScenario();
+    renderForms();
+    updateProgress();
+    renderStepper();
+    startTimer();
+    showStep(0);
+  }
+  function toggleMode() {
+    mode = mode === 'learn' ? 'exam' : 'learn';
+    app.classList.toggle('exam-mode', mode === 'exam');
+    $('modeBtn').textContent = 'Mode: ' + (mode === 'learn' ? 'Learn' : 'Exam');
+    $('modeBtn').setAttribute('aria-pressed', mode === 'learn' ? 'true' : 'false');
+    $('modeLabel').textContent = mode === 'learn' ? 'Learn' : 'Exam';
+  }
+  function startTimer() {
+    clearInterval(timerId);
+    const draw = () => { const seconds = Math.floor((Date.now() - startTime) / 1000); $('timer').textContent = String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0'); };
+    draw(); timerId = setInterval(draw, 1000);
+  }
+  document.addEventListener('click', event => {
+    if (event.target.closest('.next-btn')) showStep(activeStep + 1);
+    if (event.target.closest('.prev-btn')) showStep(activeStep - 1);
+  });
+  document.querySelectorAll('.test-btn').forEach(button => button.addEventListener('click', () => runTest(button.dataset.test)));
+  $('modeBtn').addEventListener('click', toggleMode);
+  $('newBtn').addEventListener('click', () => resetAttempt(true));
+  $('resetBtn').addEventListener('click', () => resetAttempt(false));
+  $('reviewBtn').addEventListener('click', () => showStep(8));
+  $('returnBtn').addEventListener('click', () => showStep(2));
+  $('submitBtn').addEventListener('click', submitAttempt);
+  $('retryBtn').addEventListener('click', retryMissed);
+  $('fullResetBtn').addEventListener('click', () => resetAttempt(false));
+  $('newReviewScenarioBtn').addEventListener('click', () => resetAttempt(true));
+  renderScenario(); renderForms(); updateProgress(); renderStepper(); startTimer();
+})();
+</script>
+</body>
+</html>
