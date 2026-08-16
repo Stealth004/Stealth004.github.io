@@ -69,6 +69,9 @@
     .hero-copy { max-width: 880px; color: var(--muted); }
     .hero-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 19px; }
     .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       min-height: 44px;
       border: 1px solid var(--line-strong);
       border-radius: 12px;
@@ -284,6 +287,7 @@
       <button class="btn" id="newBtn" type="button">New scenario</button>
       <button class="btn" id="resetBtn" type="button">Reset attempt</button>
       <button class="btn btn-violet" id="reviewBtn" type="button" disabled>Review results</button>
+      <a class="btn" href="./remote-access.html">Remote-access TLS transfer lab</a>
     </div>
     <span class="sr-only">Available practice states: Mode: Learn and Mode: Exam.</span>
   </header>
