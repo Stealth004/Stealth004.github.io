@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SecureLink Broken VPN Diagnostic is an original CompTIA Security+ SY0-701 practice PBQ for correlating VPN logs, finding the first failed dependency, repairing it safely, and validating recovery.">
+  <title>Broken VPN Diagnostic PBQ — Security+ SY0-701</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050d14;
+      --panel: #0b1a25;
+      --panel-2: #102636;
+      --panel-3: #07151f;
+      --line: #29485b;
+      --line-strong: #3d6980;
+      --text: #eff9ff;
+      --muted: #9db5c3;
+      --cyan: #42d8ff;
+      --teal: #31e0bd;
+      --violet: #b29aff;
+      --ok: #46d7a2;
+      --warn: #f3c95f;
+      --bad: #ff748a;
+      --shadow: 0 18px 54px rgba(0, 0, 0, .34);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% -5%, rgba(66, 216, 255, .14), transparent 31rem),
+        radial-gradient(circle at 95% 5%, rgba(178, 154, 255, .1), transparent 28rem),
+        linear-gradient(180deg, #040b11, var(--bg));
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, select, input { font: inherit; }
+    button { cursor: pointer; }
+    a { color: var(--cyan); }
+    h1, h2, h3, p { margin-top: 0; }
+    .shell { width: min(1440px, calc(100% - 28px)); margin: 0 auto; padding: 24px 0 52px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: clamp(22px, 4vw, 40px);
+      background: linear-gradient(145deg, rgba(16, 38, 54, .98), rgba(6, 20, 30, .98));
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 23rem;
+      height: 23rem;
+      right: -8rem;
+      bottom: -16rem;
+      border-radius: 50%;
+      background: rgba(255, 116, 138, .07);
+      pointer-events: none;
+    }
+    .eyebrow, .screen-kicker { color: var(--teal); font-size: .78rem; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin-bottom: 10px; font-size: clamp(2.05rem, 5vw, 3.75rem); line-height: 1.02; }
+    .hero-copy { max-width: 970px; margin: 0; color: var(--muted); }
+    .hero-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 19px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: #102739;
+      color: var(--text);
+      font-weight: 790;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--cyan); }
+    .btn-primary { border-color: transparent; background: linear-gradient(135deg, var(--cyan), #169ac8); color: #00141d; }
+    .btn-violet { background: #251f42; border-color: #665a92; }
+    .btn-danger { background: #381b27; border-color: #7a3446; }
+    .btn:disabled { cursor: not-allowed; opacity: .42; }
+    button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid rgba(66, 216, 255, .4); outline-offset: 3px; }
+    .meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
+    .meta-card { border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px; background: rgba(3, 14, 22, .55); }
+    .meta-card small { display: block; color: var(--muted); }
+    .meta-card strong { display: block; margin-top: 3px; overflow-wrap: anywhere; }
+    .progress-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin: 16px 0 22px; }
+    .progress { height: 10px; overflow: hidden; border: 1px solid #244558; border-radius: 999px; background: #0a1b27; }
+    .progress > div { width: 0; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--teal)); transition: width .2s ease; }
+    .progress-count { color: var(--muted); font-weight: 780; white-space: nowrap; }
+    .workspace { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 18px; align-items: start; }
+    .stepper { position: sticky; top: 14px; border: 1px solid var(--line); border-radius: 18px; padding: 11px; background: rgba(8, 24, 35, .96); box-shadow: 0 10px 34px rgba(0, 0, 0, .22); }
+    .step-button { width: 100%; display: grid; grid-template-columns: 32px 1fr; gap: 9px; align-items: center; min-height: 48px; margin: 2px 0; border: 1px solid transparent; border-radius: 11px; padding: 7px 8px; background: transparent; color: var(--muted); text-align: left; }
+    .step-button:hover { background: #102435; color: var(--text); }
+    .step-button[aria-current="step"] { border-color: #3b738c; background: #0f3041; color: var(--text); }
+    .step-button.complete .step-number { border-color: var(--ok); color: var(--ok); }
+    .step-button:disabled { cursor: not-allowed; opacity: .45; }
+    .step-number { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--cyan); font-weight: 850; }
+    .step-label strong, .step-label small { display: block; }
+    .step-label strong { font-size: .88rem; }
+    .step-label small { color: inherit; font-size: .73rem; }
+    .stage { min-width: 0; }
+    .screen { display: none; border: 1px solid var(--line); border-radius: 22px; padding: clamp(17px, 3vw, 28px); background: linear-gradient(145deg, rgba(13, 31, 44, .98), rgba(7, 22, 32, .98)); box-shadow: 0 12px 38px rgba(0, 0, 0, .22); }
+    .screen.active { display: block; }
+    .screen-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+    .screen-head h2 { margin-bottom: 0; }
+    .screen-head p { max-width: 840px; margin: 5px 0 0; color: var(--muted); }
+    .screen-badge { flex: 0 0 auto; border: 1px solid #3e6a80; border-radius: 999px; padding: 5px 9px; color: var(--teal); font-size: .78rem; font-weight: 820; }
+    .notice { border-left: 4px solid var(--cyan); border-radius: 10px; padding: 12px 14px; background: #0a2230; color: #d8edf8; }
+    .notice.warn { border-left-color: var(--warn); background: #2a2212; }
+    .notice.bad { border-left-color: var(--bad); background: #321721; }
+    .notice.good { border-left-color: var(--ok); background: #0a2a22; }
+    .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin: 18px 0; }
+    .fact { border: 1px solid var(--line); border-radius: 13px; padding: 11px; background: var(--panel-3); }
+    .fact small { display: block; color: var(--muted); }
+    .fact strong { display: block; margin-top: 3px; }
+    .requirements { margin: 14px 0 0; padding-left: 22px; }
+    .requirements li { margin: 7px 0; }
+    .mental-flow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .flow-card { position: relative; min-height: 102px; border: 1px solid var(--line); border-radius: 13px; padding: 10px; background: #081824; }
+    .flow-card:not(:last-child)::after { content: "›"; position: absolute; right: -9px; top: 35px; z-index: 2; color: var(--cyan); font-size: 1.4rem; font-weight: 900; }
+    .flow-card small { color: var(--teal); font-weight: 850; }
+    .flow-card strong { display: block; margin: 2px 0; font-size: .84rem; }
+    .flow-card span { color: var(--muted); font-size: .72rem; }
+    .topology-frame { overflow-x: auto; border: 1px solid var(--line); border-radius: 17px; background: #06141e; }
+    .topology { display: block; width: 100%; min-width: 980px; height: auto; }
+    .topology text { fill: var(--text); font-family: inherit; }
+    .topology .zone { fill: #081b28; stroke: #294c61; stroke-width: 1.5; stroke-dasharray: 7 6; }
+    .topology .node { fill: #102b3b; stroke: #477185; stroke-width: 2; }
+    .topology .node-bar { fill: #173e51; }
+    .topology .sub { fill: var(--muted); font-size: 12px; }
+    .topology .micro { fill: #87a6b7; font-size: 10px; }
+    .topology .path { fill: none; stroke: #6a8797; stroke-width: 5; stroke-dasharray: 12 8; marker-end: url(#arrow); }
+    .topology .path.pass { stroke: var(--ok); animation: route-flow 1.2s linear infinite; }
+    .topology .path.fail { stroke: var(--bad); }
+    @keyframes route-flow { to { stroke-dashoffset: -40; } }
+    .topology-notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 13px; }
+    .topology-note { border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: #091a26; }
+    .topology-note strong { display: block; }
+    .topology-note span { color: var(--muted); font-size: .84rem; }
+    .evidence-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(270px, .55fr); gap: 14px; align-items: start; }
+    .evidence-list { display: grid; gap: 8px; }
+    .event { border: 1px solid var(--line); border-radius: 12px; background: #06151f; }
+    .event summary { display: grid; grid-template-columns: 78px minmax(100px, .55fr) minmax(0, 1.45fr); gap: 9px; align-items: center; padding: 10px 12px; cursor: pointer; }
+    .event summary::marker { color: var(--cyan); }
+    .event time { color: var(--teal); font: .77rem ui-monospace, monospace; }
+    .event-source { font-weight: 800; font-size: .8rem; }
+    .event-code { min-width: 0; overflow-wrap: anywhere; color: #dcecf5; font: .78rem ui-monospace, monospace; }
+    .event-detail { border-top: 1px solid var(--line); padding: 10px 12px; color: var(--muted); font: .78rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; }
+    .evidence-legend { position: sticky; top: 14px; border: 1px solid var(--line); border-radius: 14px; padding: 13px; background: #081923; }
+    .evidence-legend ol { margin-bottom: 0; padding-left: 20px; color: var(--muted); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+    .field { min-width: 0; display: grid; gap: 6px; border: 1px solid transparent; border-radius: 13px; padding: 9px; }
+    .field label { font-weight: 790; }
+    .field label small { display: block; color: var(--muted); font-weight: 500; }
+    select { width: 100%; min-height: 46px; border: 1px solid #396078; border-radius: 11px; padding: 9px 11px; background: #061722; color: var(--text); }
+    select:disabled { opacity: .75; }
+    .field.correct { border-color: rgba(70, 215, 162, .42); background: rgba(70, 215, 162, .045); }
+    .field.incorrect { border-color: rgba(255, 116, 138, .45); background: rgba(255, 116, 138, .05); }
+    .field-note { display: none; font-size: .78rem; }
+    .submitted .field-note { display: block; }
+    .field.correct .field-note { color: #a9f3d5; }
+    .field.incorrect .field-note { color: #ffc4cf; }
+    .training { margin-top: 16px; border: 1px solid #4b4770; border-radius: 15px; padding: 12px 14px; background: #17172a; }
+    .training summary { cursor: pointer; color: #d9ceff; font-weight: 820; }
+    .training p { margin: 9px 0 0; color: #c3bddb; }
+    .exam-mode:not(.submitted) .training, .exam-mode:not(.submitted) .training-cue { display: none !important; }
+    .validation-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(310px, .74fr); gap: 16px; align-items: start; }
+    .test-console { position: sticky; top: 14px; border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: #06141e; }
+    .test-console h3 { margin-bottom: 4px; }
+    .test-console p { color: var(--muted); font-size: .85rem; }
+    .test-output { min-height: 235px; margin: 12px 0; border: 1px solid #29485a; border-radius: 11px; padding: 12px; background: #030d13; color: #a9bfcc; font: .78rem/1.58 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; }
+    .test-output.good { border-color: rgba(70, 215, 162, .65); color: #b8f5dd; }
+    .test-output.bad { border-color: rgba(255, 116, 138, .65); color: #ffc5cf; }
+    .confidence { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; margin: 18px auto; max-width: 760px; }
+    .confidence label { display: grid; place-items: center; gap: 5px; min-height: 78px; border: 1px solid var(--line); border-radius: 13px; background: #081a26; cursor: pointer; }
+    .confidence label:has(input:checked) { border-color: var(--cyan); background: #0d3041; }
+    .confidence span { font-size: .78rem; color: var(--muted); }
+    .submit-panel { text-align: center; border: 1px solid var(--line); border-radius: 18px; padding: clamp(20px, 5vw, 44px); background: #071923; }
+    .submit-panel p { color: var(--muted); }
+    .submit-meta { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 17px 0; }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: #081a26; color: var(--muted); font-size: .83rem; }
+    .results-empty { border: 1px dashed var(--line-strong); border-radius: 16px; padding: 24px; color: var(--muted); text-align: center; }
+    .results { display: none; }
+    .results.show { display: block; }
+    .score-hero { display: grid; grid-template-columns: 150px 1fr; gap: 19px; align-items: center; }
+    .score-ring { display: grid; place-items: center; width: 142px; height: 142px; border-radius: 50%; background: conic-gradient(var(--ok) var(--score-angle, 0deg), #183141 0); box-shadow: inset 0 0 0 14px #091923; }
+    .score-ring strong { font-size: 2rem; }
+    .score-copy p { color: var(--muted); }
+    .category-results { display: grid; gap: 10px; margin-top: 20px; }
+    .category-row { display: grid; grid-template-columns: minmax(170px, 1fr) 2fr 74px; align-items: center; gap: 10px; }
+    .category-row strong { font-size: .88rem; }
+    .bar { height: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; background: #081822; }
+    .bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--teal)); }
+    .category-row em { color: var(--muted); font-style: normal; text-align: right; }
+    .remediation { display: grid; gap: 9px; margin-top: 20px; }
+    .remediation-item { border-left: 4px solid var(--bad); border-radius: 10px; padding: 11px 13px; background: #25141c; }
+    .remediation-item.good { border-left-color: var(--ok); background: #0a261e; }
+    .remediation-item strong { display: block; }
+    .remediation-item span { color: #d8c7cd; font-size: .86rem; }
+    .screen-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; }
+    .screen-nav .right { display: flex; gap: 9px; }
+    .footer { padding-top: 30px; color: var(--muted); font-size: .83rem; text-align: center; }
+    dialog { width: min(470px, calc(100% - 28px)); border: 1px solid var(--line-strong); border-radius: 18px; padding: 0; background: #0b1b27; color: var(--text); box-shadow: var(--shadow); }
+    dialog::backdrop { background: rgba(1, 7, 11, .78); backdrop-filter: blur(4px); }
+    .dialog-body { padding: 22px; }
+    .dialog-body p { color: var(--muted); }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }
+    @media (max-width: 1180px) {
+      .mental-flow { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .flow-card::after { display: none; }
+      .evidence-layout, .validation-layout { grid-template-columns: 1fr; }
+      .evidence-legend, .test-console { position: static; }
+    }
+    @media (max-width: 900px) {
+      .workspace { grid-template-columns: 1fr; }
+      .stepper { position: static; display: flex; overflow-x: auto; padding: 8px; }
+      .step-button { flex: 0 0 147px; }
+    }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 16px, 1440px); padding-top: 8px; }
+      .hero, .screen { border-radius: 18px; }
+      .meta, .form-grid, .facts, .topology-notes { grid-template-columns: 1fr; }
+      .mental-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .screen-head { align-items: flex-start; flex-direction: column; }
+      .event summary { grid-template-columns: 70px 1fr; }
+      .event-code { grid-column: 1 / -1; }
+      .confidence { grid-template-columns: 1fr; }
+      .confidence label { grid-template-columns: auto 1fr; justify-content: start; min-height: 54px; padding: 10px 14px; }
+      .score-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+      .category-row { grid-template-columns: 1fr 62px; }
+      .category-row .bar { grid-column: 1 / -1; grid-row: 2; }
+      .screen-nav { align-items: stretch; flex-direction: column; }
+      .screen-nav .right { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell" id="appShell">
+    <header class="hero">
+      <div class="eyebrow">SecureLink diagnostic lab · Security+ SY0-701</div>
+      <h1>Broken VPN Diagnostic PBQ</h1>
+      <p class="hero-copy">Correlate gateway, firewall, route, SA, and application evidence with one repeatable flow: time → component and layer → result → correlation → root cause → smallest safe repair → ordered retest.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="modeBtn" type="button" aria-pressed="false">Mode: Learn</button>
+        <button class="btn btn-violet" id="newBtn" type="button">New incident</button>
+        <button class="btn btn-danger" id="resetBtn" type="button">Reset attempt</button>
+        <a class="btn" href="./index.html">Site-to-site IPsec Core</a>
+        <a class="btn" href="./remote-access.html">Remote-access TLS Transfer</a>
+      </div>
+      <div class="meta" aria-label="Attempt summary">
+        <div class="meta-card"><small>Incident</small><strong id="incidentMeta">IKE-PROPOSAL</strong></div>
+        <div class="meta-card"><small>Fault domain</small><strong id="domainMeta">IKE negotiation</strong></div>
+        <div class="meta-card"><small>Decisions</small><strong>24 evidence controls</strong></div>
+        <div class="meta-card"><small>Mode</small><strong id="modeMeta">Learn</strong></div>
+      </div>
+    </header>
+
+    <div class="progress-row" aria-label="Diagnostic progress">
+      <div class="progress"><div id="progressBar"></div></div>
+      <div class="progress-count" id="progressCount">0 / 24 answered</div>
+    </div>
+
+    <div class="workspace">
+      <nav class="stepper" id="stepper" aria-label="PBQ steps"></nav>
+      <section class="stage">
+        <article class="screen active" data-screen="0">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 0 · Incident</div><h2 id="incidentTitle" tabindex="-1">Incident brief</h2><p id="incidentTask"></p></div>
+            <div class="screen-badge" id="incidentId">IKE-PROPOSAL</div>
+          </div>
+          <div class="notice"><strong>Your task:</strong> diagnose from evidence. Establish the last known-good dependency before naming the failure, then choose one bounded change and an ordered retest.</div>
+          <div class="facts" id="incidentFacts"></div>
+          <h3>Constraints</h3>
+          <ul class="requirements" id="requirements"></ul>
+          <div class="mental-flow" aria-label="Reusable evidence-first workflow">
+            <div class="flow-card"><small>01</small><strong>Time</strong><span>Order the events</span></div>
+            <div class="flow-card"><small>02</small><strong>Component</strong><span>Locate the source</span></div>
+            <div class="flow-card"><small>03</small><strong>Result</strong><span>Read the status</span></div>
+            <div class="flow-card"><small>04</small><strong>Correlate</strong><span>Confirm twice</span></div>
+            <div class="flow-card"><small>05</small><strong>Cause</strong><span>First failure</span></div>
+            <div class="flow-card"><small>06</small><strong>Fix</strong><span>Smallest safe change</span></div>
+            <div class="flow-card"><small>07</small><strong>Retest</strong><span>Prove intended data</span></div>
+          </div>
+          <div id="baselineFields" class="form-grid" style="margin-top:18px"></div>
+          <details class="training">
+            <summary>Learn mode — define success before reading errors</summary>
+            <p>An IKE SA, a Child SA, and application data prove different things. Define the requested service and the least-privilege negative test before you interpret the incident.</p>
+          </details>
+          <div class="screen-nav"><span></span><div class="right"><button class="btn btn-primary next" type="button">Inspect topology</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="1">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 1 · Trust boundary</div><h2 tabindex="-1">Trace the baseline path</h2><p>Topology shows the intended dependencies, not the answer. Read peer identity, protected-network direction, NAT boundary, and the one approved application flow.</p></div>
+            <div class="screen-badge">Topology</div>
+          </div>
+          <div class="topology-frame">
+            <svg class="topology" viewBox="0 0 1100 390" role="img" aria-labelledby="topologyTitle topologyDesc">
+              <title id="topologyTitle">Site-to-site IPsec diagnostic topology</title>
+              <desc id="topologyDesc">A branch protected network reaches an HQ application through a branch gateway, an internet and NAT boundary, and an HQ gateway. Identity, route, and access policy are separate dependencies.</desc>
+              <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#6a8797"></path></marker></defs>
+              <rect class="zone" x="20" y="35" width="250" height="300" rx="18"></rect>
+              <rect class="zone" x="300" y="35" width="470" height="300" rx="18"></rect>
+              <rect class="zone" x="800" y="35" width="280" height="300" rx="18"></rect>
+              <text class="micro" x="38" y="58">BRANCH / PROTECTED</text><text class="micro" x="318" y="58">SECURITY EDGE / UNTRUSTED</text><text class="micro" x="818" y="58">HQ / PROTECTED</text>
+              <path class="path" id="diagnosticPath" d="M190 190 C310 190, 335 190, 420 190 S600 190, 690 190 S850 190, 930 190"></path>
+              <g><rect class="node" x="60" y="135" width="150" height="110" rx="15"></rect><rect class="node-bar" x="60" y="135" width="150" height="31" rx="15"></rect><text x="75" y="156" font-size="13" font-weight="800">Branch workload</text><text class="sub" x="75" y="188" id="branchSubnet">10.20.0.0/16</text><text class="micro" x="75" y="211">Approved source</text></g>
+              <g><rect class="node" x="330" y="120" width="170" height="140" rx="15"></rect><rect class="node-bar" x="330" y="120" width="170" height="31" rx="15"></rect><text x="345" y="141" font-size="13" font-weight="800">Branch gateway</text><text class="sub" x="345" y="176" id="branchPeer">203.0.113.20</text><text class="micro" x="345" y="199">IKE initiator</text><text class="micro" x="345" y="220" id="natLabel">NAT status varies</text></g>
+              <g><rect class="node" x="575" y="120" width="170" height="140" rx="15"></rect><rect class="node-bar" x="575" y="120" width="170" height="31" rx="15"></rect><text x="590" y="141" font-size="13" font-weight="800">HQ gateway</text><text class="sub" x="590" y="176" id="hqPeer">198.51.100.10</text><text class="micro" x="590" y="199">IKE responder</text><text class="micro" x="590" y="220">Policy + SA state</text></g>
+              <g><rect class="node" x="860" y="135" width="170" height="110" rx="15"></rect><rect class="node-bar" x="860" y="135" width="170" height="31" rx="15"></rect><text x="875" y="156" font-size="13" font-weight="800">HQ application</text><text class="sub" x="875" y="188" id="hqSubnet">10.10.0.0/16</text><text class="micro" x="875" y="211" id="serviceLabel">HTTPS 443</text></g>
+            </svg>
+          </div>
+          <div class="topology-notes">
+            <div class="topology-note"><strong>Control plane</strong><span>IKE proposal and peer authentication create the IKE SA.</span></div>
+            <div class="topology-note"><strong>Protected policy</strong><span>Traffic selectors and IPsec policy create the Child SA.</span></div>
+            <div class="topology-note"><strong>Data plane</strong><span>Transport, route, ACL, and application must still succeed.</span></div>
+          </div>
+          <details class="training"><summary>Learn mode — ask one question at each boundary</summary><p>Can peers reach each other? Did negotiation agree? Did authentication pass? Was a Child SA installed? Did the protected packet match a route and an allow rule? Did the application answer?</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Open evidence console</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="2">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 2 · Evidence</div><h2 tabindex="-1">Read across sources</h2><p>Expand any record. The timeline contains normal events, a decisive failure, corroboration, and realistic distractors. Source and severity never indicate correctness.</p></div>
+            <div class="screen-badge">8 records</div>
+          </div>
+          <div class="evidence-layout">
+            <div class="evidence-list" id="evidenceList"></div>
+            <aside class="evidence-legend">
+              <h3>Fast reading pass</h3>
+              <ol>
+                <li>Sort by time.</li>
+                <li>Name the component.</li>
+                <li>Translate the result.</li>
+                <li>Find the last good layer.</li>
+                <li>Confirm the first failure elsewhere.</li>
+              </ol>
+            </aside>
+          </div>
+          <details class="training"><summary>Learn mode — evidence is stronger in pairs</summary><p>A protocol result identifies the failed stage; a peer configuration, firewall event, route lookup, or ACL record identifies the exact cause. Do not let a later application timeout replace the earlier decisive event.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Triage the timeline</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="3">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 3 · Triage</div><h2 tabindex="-1">Find the first failed dependency</h2><p>Six decisions score chronology and evidence quality. Work from earliest decisive event, not the loudest final symptom.</p></div>
+            <div class="screen-badge">25 points</div>
+          </div>
+          <div id="evidenceFields" class="form-grid"></div>
+          <details class="training"><summary>Learn mode — last good before first bad</summary><p>If the IKE SA never authenticates, route and ACL evidence cannot be causal. If both SAs are established, return to the data path rather than changing crypto.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Classify the failure</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="4">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 4 · Diagnosis</div><h2 tabindex="-1">Classify, correlate, and rule out</h2><p>Separate protocol stage from root cause. Similar symptoms can occur at proposal, authentication, Child-SA, transport, route, or policy layers.</p></div>
+            <div class="screen-badge">35 points</div>
+          </div>
+          <h3>Dependency and layer</h3>
+          <div id="layerFields" class="form-grid"></div>
+          <h3 style="margin-top:20px">Root cause and correlation</h3>
+          <div id="causeFields" class="form-grid"></div>
+          <details class="training"><summary>Learn mode — a status code is not always the exact cause</summary><p>AUTHENTICATION_FAILED can represent a shared-secret, identity, issuer, revocation, or certificate-lifetime problem. Corroboration determines the repair.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Choose repair</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="5">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 5 · Remediation</div><h2 tabindex="-1">Make the smallest safe change</h2><p>A technically effective but overbroad or insecure change does not earn full credit. Preserve approved crypto, trust validation, and least privilege.</p></div>
+            <div class="screen-badge">15 points</div>
+          </div>
+          <div id="remediationFields" class="form-grid"></div>
+          <details class="training"><summary>Learn mode — repair one dependency</summary><p>Do not open all traffic, disable certificate checks, add every algorithm, or route all networks. Change the failing control at the narrowest component and peer scope.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Build validation plan</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="6">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 6 · Validation</div><h2 tabindex="-1">Retest in dependency order</h2><p>Choose the strongest proof, then run the simulated layered test. It stops at the first unresolved dependency in your selected repair.</p></div>
+            <div class="screen-badge">15 points</div>
+          </div>
+          <div class="validation-layout">
+            <div id="validationFields" class="form-grid"></div>
+            <aside class="test-console">
+              <h3>Layered test</h3>
+              <p>Operational output is based on the repair fields. Learn mode adds method guidance; Exam mode keeps remediation hidden until submission.</p>
+              <button class="btn btn-violet" id="runTestBtn" type="button">Run layered retest</button>
+              <div class="test-output" id="testOutput" aria-live="polite">No retest run.
+
+Sequence: underlay → IKE proposal → authentication → Child SA → transport → route → ACL → application</div>
+            </aside>
+          </div>
+          <details class="training"><summary>Learn mode — tunnel up is not the finish line</summary><p>Success requires the intended application data and a negative test showing unrelated access is still denied.</p></details>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><div class="right"><button class="btn btn-primary next" type="button">Review and submit</button></div></div>
+        </article>
+
+        <article class="screen" data-screen="7">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 7 · Commitment</div><h2 tabindex="-1">Record confidence, then submit</h2><p>Confidence is not scored. It separates knowledge gaps from execution slips during the debrief.</p></div>
+            <div class="screen-badge">Submission</div>
+          </div>
+          <div class="submit-panel">
+            <h3>How confident are you in this diagnosis?</h3>
+            <div class="confidence">
+              <label><input type="radio" name="confidence" value="1"><strong>1</strong><span>Guessing</span></label>
+              <label><input type="radio" name="confidence" value="2"><strong>2</strong><span>Uncertain</span></label>
+              <label><input type="radio" name="confidence" value="3"><strong>3</strong><span>Mixed</span></label>
+              <label><input type="radio" name="confidence" value="4"><strong>4</strong><span>Confident</span></label>
+              <label><input type="radio" name="confidence" value="5"><strong>5</strong><span>Exam ready</span></label>
+            </div>
+            <div class="submit-meta"><span class="pill" id="submitAnswered">0 of 24 answered</span><span class="pill" id="submitConfidence">Confidence not recorded</span><span class="pill">100 weighted points</span></div>
+            <p>Unanswered controls receive no credit. You can still submit when ready.</p>
+            <button class="btn btn-primary" id="submitBtn" type="button">Lock and score diagnosis</button>
+          </div>
+          <div class="screen-nav"><button class="btn back" type="button">Back</button><span></span></div>
+        </article>
+
+        <article class="screen" data-screen="8">
+          <div class="screen-head">
+            <div><div class="screen-kicker">Step 8 · Debrief</div><h2 tabindex="-1">Close the diagnostic gap</h2><p>Compare score, confidence, operational result, and causal chain. Retry the same incident or transfer the method to another failure.</p></div>
+            <div class="screen-badge">Review</div>
+          </div>
+          <div class="results-empty" id="resultsEmpty">Submit an attempt to unlock the evidence-based debrief.</div>
+          <div class="results" id="results">
+            <div class="score-hero">
+              <div class="score-ring" id="scoreRing"><strong><span id="scoreValue">0</span>%</strong></div>
+              <div class="score-copy"><h3 id="scoreTitle">Diagnostic result</h3><p id="scoreSummary"></p><div class="submit-meta" style="justify-content:flex-start"><span class="pill" id="resultConfidence"></span><span class="pill" id="resultDiagnostic"></span></div></div>
+            </div>
+            <div class="category-results" id="categoryResults"></div>
+            <div class="remediation" id="remediation"></div>
+            <div class="hero-actions"><button class="btn btn-primary" id="retryBtn" type="button">Retry this incident</button><button class="btn btn-violet" id="nextIncidentBtn" type="button">Try another incident</button></div>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <p class="footer">Independent Security+ SY0-701 practice simulation · Original evidence and scoring · Vendor-neutral and requirement-driven · Not affiliated with or endorsed by CompTIA.</p>
+  </main>
+
+  <dialog id="resetDialog" aria-labelledby="resetTitle">
+    <div class="dialog-body"><h2 id="resetTitle">Reset this attempt?</h2><p>Your answers, confidence, retest output, and score will be cleared. The current incident will remain selected.</p><div class="dialog-actions"><button class="btn" id="cancelResetBtn" type="button">Cancel</button><button class="btn btn-danger" id="confirmResetBtn" type="button">Reset attempt</button></div></div>
+  </dialog>
+
+  <script>
+    window.VPN_DIAGNOSTIC_MODEL = (() => {
+      const categories = {
+        baseline: { label: "Baseline and topology", weight: 10 },
+        evidence: { label: "Evidence and chronology", weight: 25 },
+        layer: { label: "Dependency and layer", weight: 15 },
+        cause: { label: "Root cause and correlation", weight: 20 },
+        remediation: { label: "Smallest safe remediation", weight: 15 },
+        validation: { label: "Ordered validation", weight: 15 }
+      };
+      const options = values => values.map(([value, label]) => [value, label]);
+      const fields = {
+        expectedService: { category: "baseline", label: "Expected service", help: "Identify the business flow that must work.", options: options([["branch_https", "Branch user to approved HQ HTTPS application"], ["peer_ping", "Public peer ping only"], ["any_internal", "Any branch-to-HQ service"], ["sa_only", "An IKE SA with no data test"]]) },
+        successDefinition: { category: "baseline", label: "Success definition", help: "Choose proof that includes least privilege.", options: options([["data_plus_deny", "Approved application passes and unrelated access remains denied"], ["ike_only", "IKE SA is established"], ["child_only", "Child SA is installed"], ["no_alerts", "No new alerts appear for one minute"]]) },
+        firstEvent: { category: "evidence", label: "Earliest decisive event", help: "Choose the first event that proves the failure stage.", options: options([["ike_init_error", "Responder rejects IKE_SA_INIT"], ["ike_auth_error", "Responder rejects IKE_AUTH"], ["child_error", "Responder rejects Child-SA selectors"], ["natt_retransmit", "UDP 4500 exchange begins retransmitting"], ["route_lookup", "Protected-destination route lookup fails"], ["acl_deny", "Required protected flow matches an explicit deny"], ["app_timeout", "Application probe times out"]]) },
+        corroboratingSource: { category: "evidence", label: "Best corroborating source", help: "Select the second source that explains the exact cause.", options: options([["peer_policy", "Peer proposal-policy comparison"], ["psk_versions", "Credential version record on both peers"], ["cert_detail", "Certificate identity and validity detail"], ["selector_dump", "Local and remote traffic-selector dump"], ["firewall_4500", "Firewall event for peer UDP 4500"], ["route_table", "Route lookup and route-table entry"], ["acl_log", "Named ACL rule and hit counter"]]) },
+        lastGood: { category: "evidence", label: "Last known-good dependency", help: "Stop immediately before the first failure.", options: options([["underlay", "Public underlay peer reachability"], ["proposal", "IKE proposal agreement"], ["authenticated_ike", "Authenticated IKE SA"], ["child_installed", "Child SA installed"], ["natt_transport", "NAT-T transport passing"], ["route_match", "Protected route matches"], ["acl_allow", "Post-tunnel ACL permits the flow"]]) },
+        firstFailed: { category: "evidence", label: "First failed dependency", help: "Identify the earliest broken layer.", options: options([["proposal", "IKE proposal agreement"], ["authentication", "Peer authentication"], ["selector", "Child-SA traffic selectors"], ["natt_path", "NAT-T or firewall path"], ["route", "Protected-destination route"], ["acl", "Post-tunnel access rule"], ["application", "Application service"]]) },
+        decisiveStatus: { category: "evidence", label: "Decisive status", help: "Translate the protocol or policy result.", options: options([["no_proposal", "NO_PROPOSAL_CHOSEN"], ["auth_failed", "AUTHENTICATION_FAILED"], ["ts_unacceptable", "TS_UNACCEPTABLE"], ["udp4500_timeout", "UDP 4500 retransmit timeout"], ["no_route", "No matching protected route"], ["policy_deny", "Explicit policy deny"], ["tcp_timeout", "TCP application timeout"]]) },
+        irrelevantClue: { category: "evidence", label: "Non-causal clue", help: "Reject a true but irrelevant event.", options: options([["dns_success", "DNS lookup succeeds"], ["ntp_sync", "NTP is synchronized"], ["cpu_normal", "Gateway CPU is normal"], ["rekey_future", "Rekey timer is several hours away"], ["public_ping", "Public peer answers ICMP"], ["cert_valid", "Certificate chain is valid"], ["ike_up", "IKE SA is established"]]) },
+        stage: { category: "layer", label: "Failed stage", help: "Classify the dependency stage.", options: options([["ike_init", "IKE_SA_INIT negotiation"], ["ike_auth", "IKE_AUTH authentication"], ["child_create", "Child-SA creation"], ["natt_transport", "NAT-T protected transport"], ["routing", "Post-tunnel routing"], ["authorization", "Post-tunnel authorization"], ["application", "Application layer"]]) },
+        plane: { category: "layer", label: "Primary plane", help: "Separate control-plane from protected-data failures.", options: options([["control", "Control plane"], ["data", "Data plane"], ["identity", "Identity plane"], ["management", "Management plane"]]) },
+        ikeState: { category: "layer", label: "IKE SA state", help: "State what the evidence proves, not what is expected.", options: options([["not_established", "Not established"], ["half_open", "Negotiation started but not authenticated"], ["established", "Authenticated and established"], ["unknown", "No usable evidence"]]) },
+        childState: { category: "layer", label: "Child SA state", help: "Differentiate IKE state from protected-data policy.", options: options([["not_created", "Not created"], ["rejected", "Rejected during creation"], ["installed", "Installed"], ["expired", "Expired after use"]]) },
+        rootCause: { category: "cause", label: "Root cause", help: "Choose the cause supported by both decisive records.", options: options([["proposal_no_overlap", "No approved IKE suite overlaps"], ["psk_version_mismatch", "Peers use different PSK versions"], ["certificate_expired", "Responder certificate is expired"], ["selector_perspective", "Protected subnet is entered from the wrong peer perspective"], ["udp4500_blocked", "Firewall blocks NAT-T UDP 4500"], ["remote_route_missing", "Route to the remote protected prefix is missing"], ["acl_order_denies", "A broader deny precedes the required allow rule"]]) },
+        affectedSide: { category: "cause", label: "Affected component", help: "Name the component where the corrective change belongs.", options: options([["both_policy", "Peer IKE policies"], ["peer_credentials", "Peer credential stores"], ["hq_certificate", "HQ gateway certificate"], ["branch_selector", "Branch protected-network selector"], ["edge_firewall", "Internet-edge firewall"], ["branch_route", "Branch gateway route table"], ["hq_acl", "HQ post-tunnel ACL"]]) },
+        direction: { category: "cause", label: "Affected direction", help: "Use initiator, responder, and protected-flow perspective.", options: options([["negotiation", "Bidirectional IKE negotiation"], ["authentication", "Initiator-to-responder authentication"], ["branch_to_hq_selector", "Branch source to HQ protected destination"], ["udp4500_both", "Bidirectional peer UDP 4500"], ["branch_to_hq_data", "Branch-to-HQ protected data"], ["hq_to_branch_return", "HQ-to-Branch return path"], ["unrelated", "Unrelated management traffic"]]) },
+        ruledOut: { category: "cause", label: "Best ruled-out cause", help: "Use last-good evidence to eliminate a tempting alternative.", options: options([["firewall_path", "Underlay and UDP 500 firewall path"], ["proposal_mismatch", "IKE proposal mismatch"], ["auth_failure", "Peer authentication failure"], ["selector_mismatch", "Traffic-selector mismatch"], ["route_failure", "Protected route failure"], ["acl_failure", "Post-tunnel ACL failure"], ["application_failure", "HQ application outage"]]) },
+        repairTarget: { category: "remediation", label: "Repair target", help: "Change the failing control, not every VPN setting.", options: options([["ike_policy", "IKE proposal policy"], ["credential_store", "Peer credential store"], ["certificate_binding", "HQ certificate binding"], ["traffic_selector", "Branch traffic selector"], ["firewall_rule", "Edge firewall peer rule"], ["route_table", "Branch route table"], ["post_tunnel_acl", "HQ post-tunnel ACL"]]) },
+        repairAction: { category: "remediation", label: "Corrective change", help: "Choose the smallest action that resolves the evidence.", options: options([["add_common_approved_suite", "Restore one approved common IKE suite"], ["sync_psk_version", "Synchronize the intended PSK version"], ["replace_valid_certificate", "Bind a renewed identity-valid certificate"], ["correct_remote_selector", "Correct the remote protected subnet from Branch perspective"], ["allow_peer_udp4500", "Permit peer-to-peer UDP 4500"], ["add_remote_prefix_route", "Add the intended HQ protected-prefix route"], ["insert_narrow_allow", "Insert the required narrow allow before the broader deny"]]) },
+        preserveControl: { category: "remediation", label: "Control to preserve", help: "Do not solve availability by weakening security.", options: options([["no_weak_fallback", "No obsolete or catch-all crypto fallback"], ["unique_secret", "Unique peer secret and protected storage"], ["strict_trust", "Strict certificate identity, chain, and lifetime validation"], ["least_selectors", "Only approved protected networks"], ["peer_scope_only", "Only required peer ports and addresses"], ["no_default_route", "No default route through the tunnel"], ["deny_unrelated", "Unrelated internal access remains denied"]]) },
+        changeScope: { category: "remediation", label: "Change scope", help: "Bound the blast radius.", options: options([["single_peer_policy", "This peer policy only"], ["peer_credential_pair", "This peer credential pair only"], ["responder_certificate", "This gateway identity binding only"], ["one_selector", "One incorrect selector only"], ["two_peer_addresses", "Two VPN peer addresses only"], ["one_remote_prefix", "One approved remote prefix only"], ["one_app_flow", "One approved application flow only"]]) },
+        validationOrder: { category: "validation", label: "Validation order", help: "Retest from the repaired dependency outward.", options: options([["underlay_ike_child_data", "Underlay → IKE → Child SA → transport → route → ACL → application"], ["application_first", "Application → DNS → IKE"], ["route_before_ike", "Route → ACL → proposal"], ["alerts_only", "Wait for alerts to clear"]]) },
+        firstVerification: { category: "validation", label: "First repair verification", help: "Verify the exact changed dependency before broad testing.", options: options([["ike_sa_suite", "Inspect negotiated IKE suite and established SA"], ["authenticated_ike", "Confirm authenticated IKE SA on both peers"], ["certificate_identity", "Validate certificate time, identity, chain, then IKE authentication"], ["child_selectors", "Inspect installed Child-SA selectors on both peers"], ["udp4500_bidirectional", "Confirm bidirectional peer UDP 4500 and SA progress"], ["route_lookup_remote", "Run route lookup for the HQ protected destination"], ["acl_hit_allow", "Confirm the narrow allow hit and broader deny remains"]]) },
+        successProof: { category: "validation", label: "Mission success proof", help: "Choose end-to-end operational evidence.", options: options([["data_plus_deny", "Approved HTTPS data passes and unrelated access is denied"], ["ike_only", "IKE SA exists"], ["child_only", "Child SA exists"], ["ping_only", "Public peer answers ping"]]) },
+        regressionCheck: { category: "validation", label: "Security regression check", help: "Prove the repair did not weaken the baseline.", options: options([["approved_suite_only", "Only approved IKE suites negotiate"], ["wrong_psk_rejected", "Old or wrong PSK is rejected"], ["invalid_cert_rejected", "Expired or identity-invalid certificates are rejected"], ["unapproved_subnet_denied", "Unapproved protected subnet is denied"], ["nonpeer_4500_denied", "Non-peer UDP 4500 remains denied"], ["no_tunnel_default", "No default route is added to the tunnel"], ["unrelated_service_denied", "Unrelated internal service remains denied"]]) }
+      };
+
+      const base = {
+        expectedService: "branch_https", successDefinition: "data_plus_deny",
+        validationOrder: "underlay_ike_child_data", successProof: "data_plus_deny"
+      };
+      const incidents = [
+        {
+          id: "IKE-PROPOSAL", title: "New branch cannot negotiate", domain: "IKE negotiation", task: "A newly commissioned branch cannot establish its site-to-site tunnel after an approved crypto-policy change.",
+          facts: ["Branch users", "Branch gateway", "Public internet", "HQ finance HTTPS"], subnets: ["10.24.0.0/16", "10.14.0.0/16"], peers: ["203.0.113.24", "198.51.100.14"], nat: "No NAT detected", service: "HTTPS 443",
+          requirements: ["Use IKEv2 and an approved common suite.", "Do not enable obsolete or catch-all fallback proposals.", "Permit only Branch-to-HQ finance HTTPS after recovery."],
+          evidence: [
+            ["08:42:01.112", "BR-GW", "UNDERLAY_OK", "Peer 198.51.100.14 reachable; RTT 31 ms; correlation vpn-24."],
+            ["08:42:01.401", "EDGE-FW", "ALLOW_UDP500", "203.0.113.24:500 to 198.51.100.14:500 allowed."],
+            ["08:42:01.620", "BR-GW", "IKE_SA_INIT_SENT", "Offered AES256-GCM, PRF-SHA384, DH20."],
+            ["08:42:01.684", "HQ-GW", "NO_PROPOSAL_CHOSEN", "Peer offer rejected; active peer policy permits AES256-GCM, PRF-SHA384, DH14."],
+            ["08:42:02.691", "BR-GW", "RETRANSMIT", "IKE_SA_INIT retry 1 of 4."],
+            ["08:42:03.004", "DNS", "LOOKUP_OK", "finance.hq.example resolved to 10.14.40.20."],
+            ["08:42:04.200", "SA-STATUS", "IKE_NONE", "No IKE SA; no Child SA; encap 0; decap 0."],
+            ["08:42:05.900", "APP-PROBE", "TCP_TIMEOUT", "10.24.8.31 to 10.14.40.20:443 timed out."]
+          ], fault: { code: "NO-PROPOSAL", layer: "IKE_SA_INIT", observed: "The responder rejects every offered IKE proposal before authentication." },
+          answers: { ...base, firstEvent:"ike_init_error", corroboratingSource:"peer_policy", lastGood:"underlay", firstFailed:"proposal", decisiveStatus:"no_proposal", irrelevantClue:"dns_success", stage:"ike_init", plane:"control", ikeState:"not_established", childState:"not_created", rootCause:"proposal_no_overlap", affectedSide:"both_policy", direction:"negotiation", ruledOut:"firewall_path", repairTarget:"ike_policy", repairAction:"add_common_approved_suite", preserveControl:"no_weak_fallback", changeScope:"single_peer_policy", firstVerification:"ike_sa_suite", regressionCheck:"approved_suite_only" }
+        },
+        {
+          id: "IKE-PSK", title: "Authentication fails after secret rotation", domain: "Peer authentication", task: "The tunnel stopped after a scheduled peer-secret rotation. Public reachability and proposal agreement remain healthy.",
+          facts: ["Warehouse systems", "Warehouse gateway", "Public internet", "HQ inventory HTTPS"], subnets: ["10.32.0.0/16", "10.12.0.0/16"], peers: ["203.0.113.32", "198.51.100.12"], nat: "No NAT detected", service: "HTTPS 443",
+          requirements: ["Keep a unique PSK for this peer pair.", "Do not roll back the approved IKE suite.", "Restore only the inventory application flow."],
+          evidence: [
+            ["09:16:10.020", "EDGE-FW", "ALLOW_UDP500", "Bidirectional UDP 500 allowed for the two peer addresses."],
+            ["09:16:10.208", "HQ-GW", "IKE_PROPOSAL_ACCEPT", "AES256-GCM, PRF-SHA384, DH14 selected."],
+            ["09:16:10.441", "WH-GW", "IKE_AUTH_SENT", "IDi=gw-wh.example.test; credential ref vpn-wh-v3."],
+            ["09:16:10.520", "HQ-GW", "AUTHENTICATION_FAILED", "IKE_AUTH rejected for gw-wh.example.test."],
+            ["09:16:10.660", "CRED-AUDIT", "VERSION_DIFF", "Warehouse uses vpn-wh-v3; HQ peer object remains vpn-wh-v2."],
+            ["09:16:11.012", "NTP", "SYNC_OK", "Both gateways within 42 ms."],
+            ["09:16:12.100", "SA-STATUS", "IKE_HALF_OPEN", "Proposal selected; peer not authenticated; Child SA absent."],
+            ["09:16:13.700", "APP-PROBE", "TCP_TIMEOUT", "Inventory HTTPS probe timed out."]
+          ], fault: { code: "AUTH-FAILED", layer: "IKE_AUTH", observed: "Proposal negotiation succeeds, but the peers authenticate with different secret versions." },
+          answers: { ...base, firstEvent:"ike_auth_error", corroboratingSource:"psk_versions", lastGood:"proposal", firstFailed:"authentication", decisiveStatus:"auth_failed", irrelevantClue:"ntp_sync", stage:"ike_auth", plane:"control", ikeState:"half_open", childState:"not_created", rootCause:"psk_version_mismatch", affectedSide:"peer_credentials", direction:"authentication", ruledOut:"proposal_mismatch", repairTarget:"credential_store", repairAction:"sync_psk_version", preserveControl:"unique_secret", changeScope:"peer_credential_pair", firstVerification:"authenticated_ike", regressionCheck:"wrong_psk_rejected" }
+        },
+        {
+          id: "IKE-CERT", title: "Certificate-authenticated peer is rejected", domain: "Certificate authentication", task: "A certificate-authenticated HQ gateway began rejecting the branch at the first connection after midnight UTC.",
+          facts: ["Engineering users", "Engineering gateway", "Public internet", "HQ source repository"], subnets: ["10.44.0.0/16", "10.11.0.0/16"], peers: ["203.0.113.44", "198.51.100.11"], nat: "No NAT detected", service: "HTTPS 443",
+          requirements: ["Preserve strict certificate identity, chain, and lifetime checks.", "Do not bypass warnings or switch to an unaudited PSK.", "Restore repository HTTPS only."],
+          evidence: [
+            ["00:03:21.010", "EDGE-FW", "ALLOW_UDP500", "Peer UDP 500 allowed in both directions."],
+            ["00:03:21.201", "HQ-GW", "IKE_PROPOSAL_ACCEPT", "Approved IKE suite selected."],
+            ["00:03:21.522", "ENG-GW", "CERT_SENT", "Subject vpn-eng.example.test; issuer Example Enterprise Issuing CA 02."],
+            ["00:03:21.690", "HQ-GW", "AUTHENTICATION_FAILED", "Peer certificate validation failed during IKE_AUTH."],
+            ["00:03:21.701", "CERT-DETAIL", "CERT_EXPIRED", "notAfter=2026-08-15T23:59:59Z; current=2026-08-16T00:03:21Z; SAN identity matches."],
+            ["00:03:21.920", "NTP", "SYNC_OK", "Both gateways synchronized to approved source."],
+            ["00:03:22.070", "SA-STATUS", "IKE_HALF_OPEN", "IKE authentication incomplete; no Child SA."],
+            ["00:03:24.880", "APP-PROBE", "TCP_TIMEOUT", "Repository HTTPS probe timed out."]
+          ], fault: { code: "CERT-EXPIRED", layer: "IKE_AUTH", observed: "The peer identity and chain are known, but the bound certificate is outside its validity period." },
+          answers: { ...base, firstEvent:"ike_auth_error", corroboratingSource:"cert_detail", lastGood:"proposal", firstFailed:"authentication", decisiveStatus:"auth_failed", irrelevantClue:"ntp_sync", stage:"ike_auth", plane:"identity", ikeState:"half_open", childState:"not_created", rootCause:"certificate_expired", affectedSide:"hq_certificate", direction:"authentication", ruledOut:"proposal_mismatch", repairTarget:"certificate_binding", repairAction:"replace_valid_certificate", preserveControl:"strict_trust", changeScope:"responder_certificate", firstVerification:"certificate_identity", regressionCheck:"invalid_cert_rejected" }
+        },
+        {
+          id: "CHILD-SELECTOR", title: "IKE is up; Child SA is rejected", domain: "Protected-network policy", task: "Peer authentication succeeds, but the new branch protected network never receives a Child SA.",
+          facts: ["Clinic workstations", "Clinic gateway", "Public internet", "HQ records HTTPS"], subnets: ["10.46.0.0/16", "10.16.0.0/16"], peers: ["203.0.113.46", "198.51.100.16"], nat: "No NAT detected", service: "HTTPS 443",
+          requirements: ["Protect exactly Clinic-to-HQ records traffic.", "Keep authenticated IKEv2 and the approved suite unchanged.", "Do not broaden selectors to all networks."],
+          evidence: [
+            ["11:28:44.101", "CLINIC-GW", "IKE_AUTH_OK", "Authenticated IKE SA established with HQ peer."],
+            ["11:28:44.220", "CLINIC-GW", "CHILD_REQUEST", "TSi=10.46.0.0/16; TSr=10.61.0.0/16."],
+            ["11:28:44.291", "HQ-GW", "TS_UNACCEPTABLE", "No allowed policy intersects proposed TSr."],
+            ["11:28:44.310", "SELECTOR-DUMP", "POLICY_EXPECTED", "HQ peer object expects Clinic 10.46.0.0/16 to HQ 10.16.0.0/16."],
+            ["11:28:44.450", "EDGE-FW", "ALLOW_IPSEC", "UDP 500 and ESP peer traffic allowed."],
+            ["11:28:45.000", "CERT-DETAIL", "CERT_VALID", "Peer certificate identity and lifetime valid."],
+            ["11:28:45.200", "SA-STATUS", "IKE_UP_CHILD_NONE", "IKE SA established; Child SA absent."],
+            ["11:28:47.620", "APP-PROBE", "TCP_TIMEOUT", "Records HTTPS probe timed out."]
+          ], fault: { code: "TS-UNACCEPTABLE", layer: "Child SA", observed: "Authentication succeeds, but the Branch proposes the wrong HQ protected subnet." },
+          answers: { ...base, firstEvent:"child_error", corroboratingSource:"selector_dump", lastGood:"authenticated_ike", firstFailed:"selector", decisiveStatus:"ts_unacceptable", irrelevantClue:"cert_valid", stage:"child_create", plane:"control", ikeState:"established", childState:"rejected", rootCause:"selector_perspective", affectedSide:"branch_selector", direction:"branch_to_hq_selector", ruledOut:"auth_failure", repairTarget:"traffic_selector", repairAction:"correct_remote_selector", preserveControl:"least_selectors", changeScope:"one_selector", firstVerification:"child_selectors", regressionCheck:"unapproved_subnet_denied" }
+        },
+        {
+          id: "NATT-PATH", title: "NAT detected; exchange stalls on 4500", domain: "NAT-T and firewall path", task: "A branch moved behind an ISP device. IKE starts on UDP 500, detects NAT, then stops progressing.",
+          facts: ["Retail devices", "Retail gateway", "ISP NAT and edge firewall", "HQ ordering HTTPS"], subnets: ["10.52.0.0/16", "10.18.0.0/16"], peers: ["192.0.2.52", "198.51.100.18"], nat: "NAT detected at Branch", service: "HTTPS 443",
+          requirements: ["Use NAT traversal for the two VPN peers.", "Do not open UDP 4500 from arbitrary internet sources.", "Keep the approved IKE and IPsec policies."],
+          evidence: [
+            ["12:05:09.100", "RETAIL-GW", "IKE_SA_INIT_SENT", "Initial IKE request sent over UDP 500."],
+            ["12:05:09.190", "HQ-GW", "NAT_DETECTED", "NAT_DETECTION hash mismatch; switch subsequent IKE and ESP to UDP 4500."],
+            ["12:05:09.260", "RETAIL-GW", "UDP4500_SENT", "IKE_AUTH sent to HQ peer on UDP 4500."],
+            ["12:05:09.271", "EDGE-FW", "DENY_UDP4500", "Source 192.0.2.52 to 198.51.100.18:4500 matched legacy deny-vpn-natt."],
+            ["12:05:10.270", "RETAIL-GW", "NATT_RETRANSMIT", "UDP 4500 retry 1 of 4; no response."],
+            ["12:05:10.480", "DNS", "LOOKUP_OK", "orders.hq.example resolved to 10.18.20.44."],
+            ["12:05:11.100", "SA-STATUS", "IKE_HALF_OPEN", "NAT detected; authenticated IKE SA absent; Child SA absent."],
+            ["12:05:13.010", "APP-PROBE", "TCP_TIMEOUT", "Ordering HTTPS probe timed out."]
+          ], fault: { code: "NATT-BLOCKED", layer: "UDP 4500 path", observed: "NAT detection requires UDP 4500, and the edge firewall drops the peer exchange." },
+          answers: { ...base, firstEvent:"natt_retransmit", corroboratingSource:"firewall_4500", lastGood:"underlay", firstFailed:"natt_path", decisiveStatus:"udp4500_timeout", irrelevantClue:"dns_success", stage:"natt_transport", plane:"control", ikeState:"half_open", childState:"not_created", rootCause:"udp4500_blocked", affectedSide:"edge_firewall", direction:"udp4500_both", ruledOut:"proposal_mismatch", repairTarget:"firewall_rule", repairAction:"allow_peer_udp4500", preserveControl:"peer_scope_only", changeScope:"two_peer_addresses", firstVerification:"udp4500_bidirectional", regressionCheck:"nonpeer_4500_denied" }
+        },
+        {
+          id: "POST-ROUTE", title: "Both SAs are up; no packet enters the tunnel", domain: "Post-tunnel routing", task: "The tunnel reports healthy after a branch subnet migration, but the required HQ application remains unreachable.",
+          facts: ["Operations users", "Operations gateway", "IPsec tunnel established", "HQ scheduling HTTPS"], subnets: ["10.62.0.0/16", "10.22.0.0/16"], peers: ["203.0.113.62", "198.51.100.22"], nat: "No NAT detected", service: "HTTPS 443",
+          requirements: ["Keep the established SA and selectors unchanged.", "Route only the approved HQ protected prefix through the tunnel.", "Do not add a default tunnel route."],
+          evidence: [
+            ["13:40:02.010", "SA-STATUS", "IKE_UP", "Authenticated IKE SA established with approved suite."],
+            ["13:40:02.080", "SA-STATUS", "CHILD_UP", "Child SA installed for 10.62.0.0/16 to 10.22.0.0/16."],
+            ["13:40:03.201", "ROUTE-LOOKUP", "NO_ROUTE", "Destination 10.22.14.8 has no matching remote-prefix route; default points to local ISP."],
+            ["13:40:03.310", "COUNTERS", "ENCAP_ZERO", "Child SA packets out 0; packets in 0."],
+            ["13:40:03.410", "EDGE-FW", "NO_PROTECTED_FLOW", "No ESP packet observed for application probe."],
+            ["13:40:03.500", "CPU", "NORMAL", "Gateway CPU 18%; memory 41%."],
+            ["13:40:04.020", "HQ-ACL", "RULE_READY", "Approved HTTPS rule present for 10.62.0.0/16."],
+            ["13:40:05.901", "APP-PROBE", "TCP_TIMEOUT", "Scheduling HTTPS probe timed out."]
+          ], fault: { code: "ROUTE-MISSING", layer: "Protected data path", observed: "Both SAs exist, but route lookup never sends the protected destination into IPsec." },
+          answers: { ...base, firstEvent:"route_lookup", corroboratingSource:"route_table", lastGood:"child_installed", firstFailed:"route", decisiveStatus:"no_route", irrelevantClue:"cpu_normal", stage:"routing", plane:"data", ikeState:"established", childState:"installed", rootCause:"remote_route_missing", affectedSide:"branch_route", direction:"branch_to_hq_data", ruledOut:"selector_mismatch", repairTarget:"route_table", repairAction:"add_remote_prefix_route", preserveControl:"no_default_route", changeScope:"one_remote_prefix", firstVerification:"route_lookup_remote", regressionCheck:"no_tunnel_default" }
+        },
+        {
+          id: "POST-ACL", title: "Encrypted packets arrive; application is denied", domain: "Post-tunnel authorization", task: "The VPN and route are healthy. The HQ gateway receives the protected flow, but the approved application still fails.",
+          facts: ["Support users", "Support gateway", "IPsec tunnel established", "HQ ticketing HTTPS"], subnets: ["10.72.0.0/16", "10.26.0.0/16"], peers: ["203.0.113.72", "198.51.100.26"], nat: "No NAT detected", service: "HTTPS 443",
+          requirements: ["Allow only Support-to-ticketing HTTPS.", "Preserve the broader deny for all unrelated internal access.", "Do not change the healthy VPN or route."],
+          evidence: [
+            ["14:18:31.010", "SA-STATUS", "IKE_UP", "Authenticated IKE SA established."],
+            ["14:18:31.050", "SA-STATUS", "CHILD_UP", "Child SA installed for approved protected networks."],
+            ["14:18:31.200", "ROUTE-LOOKUP", "ROUTE_MATCH", "10.26.18.30 uses vpn-hq interface."],
+            ["14:18:31.330", "COUNTERS", "ENCAP_DECAP", "Branch encap +4; HQ decap +4 for correlation vpn-72."],
+            ["14:18:31.351", "HQ-ACL", "POLICY_DENY", "deny-intersite-any sequence 40 denied 10.72.8.15 to 10.26.18.30:443."],
+            ["14:18:31.360", "HQ-ACL", "ALLOW_UNUSED", "allow-support-ticketing sequence 60 received no hit because earlier deny matched."],
+            ["14:18:31.500", "REKEY", "FUTURE", "Next Child-SA rekey in 06:31:20."],
+            ["14:18:33.110", "APP-PROBE", "TCP_TIMEOUT", "Ticketing HTTPS probe timed out."]
+          ], fault: { code: "ACL-DENY", layer: "Post-tunnel policy", observed: "The protected packet reaches HQ, but an earlier broad deny shadows the required narrow allow." },
+          answers: { ...base, firstEvent:"acl_deny", corroboratingSource:"acl_log", lastGood:"route_match", firstFailed:"acl", decisiveStatus:"policy_deny", irrelevantClue:"rekey_future", stage:"authorization", plane:"data", ikeState:"established", childState:"installed", rootCause:"acl_order_denies", affectedSide:"hq_acl", direction:"branch_to_hq_data", ruledOut:"route_failure", repairTarget:"post_tunnel_acl", repairAction:"insert_narrow_allow", preserveControl:"deny_unrelated", changeScope:"one_app_flow", firstVerification:"acl_hit_allow", regressionCheck:"unrelated_service_denied" }
+        }
+      ];
+
+      const fieldKeys = Object.keys(fields);
+      function incidentById(id) { return incidents.find(incident => incident.id === id); }
+      function grade(id, answers) {
+        const incident = incidentById(id);
+        const results = fieldKeys.map(key => ({ key, category: fields[key].category, actual: answers[key] || "", expected: incident.answers[key], correct: answers[key] === incident.answers[key] }));
+        const categoryResults = {};
+        for (const [key, category] of Object.entries(categories)) {
+          const items = results.filter(result => result.category === key);
+          const correct = items.filter(item => item.correct).length;
+          categoryResults[key] = { ...category, points: Math.round(category.weight * correct / items.length), correct, total: items.length };
+        }
+        return { score: Object.values(categoryResults).reduce((sum, category) => sum + category.points, 0), correct: results.filter(result => result.correct).length, answered: fieldKeys.filter(key => answers[key]).length, total: fieldKeys.length, categories: categoryResults, results };
+      }
+      function diagnose(id, answers) {
+        const incident = incidentById(id);
+        const repairKeys = ["repairTarget", "repairAction", "preserveControl", "changeScope"];
+        if (repairKeys.some(key => !answers[key])) return { code: "REPAIR-INCOMPLETE", layer: "Remediation plan", observed: "The repair target, action, preserved control, or scope is blank.", action: "Complete one bounded repair plan before retesting.", next: "Run the layered retest again.", ok: false };
+        if (answers.repairTarget !== incident.answers.repairTarget || answers.repairAction !== incident.answers.repairAction) return { ...incident.fault, action: "The selected target or change does not repair the first failed dependency.", next: "Return to the decisive evidence pair and revise one repair field.", ok: false };
+        if (answers.preserveControl !== incident.answers.preserveControl || answers.changeScope !== incident.answers.changeScope) return { code: "PARTIAL-REPAIR", layer: "Security regression", observed: "The failure is repaired, but the change weakens a required control or has excessive scope.", action: "Preserve the named security control and limit the change to the affected peer, prefix, or flow.", next: "Repeat the negative least-privilege regression test.", ok: false };
+        return { code: "DATA-PASS", layer: "End-to-end", observed: "The repaired dependency passes, the approved HTTPS flow succeeds, and unrelated access remains denied.", action: "Preserve the evidence and bounded change as the approved incident record.", next: "Compare confidence with the debrief, then transfer the method to another incident.", ok: true };
+      }
+      return { categories, fields, incidents, fieldKeys, grade, diagnose };
+    })();
+  </script>
+
+  <script>
+    (() => {
+      const model = window.VPN_DIAGNOSTIC_MODEL;
+      const steps = [["Incident", "Define success"], ["Topology", "Trace baseline"], ["Evidence", "Read sources"], ["Triage", "Find first failure"], ["Diagnose", "Correlate cause"], ["Repair", "Bound change"], ["Validate", "Retest layers"], ["Submit", "Commit attempt"], ["Debrief", "Close gaps"]];
+      const groups = {
+        baselineFields: ["expectedService", "successDefinition"],
+        evidenceFields: ["firstEvent", "corroboratingSource", "lastGood", "firstFailed", "decisiveStatus", "irrelevantClue"],
+        layerFields: ["stage", "plane", "ikeState", "childState"],
+        causeFields: ["rootCause", "affectedSide", "direction", "ruledOut"],
+        remediationFields: ["repairTarget", "repairAction", "preserveControl", "changeScope"],
+        validationFields: ["validationOrder", "firstVerification", "successProof", "regressionCheck"]
+      };
+      const state = { incidentIndex: 0, screen: 0, answers: {}, mode: "learn", submitted: false, confidence: "", lastDiagnostic: null };
+      const shell = document.getElementById("appShell");
+      const screens = [...document.querySelectorAll(".screen")];
+      const stepper = document.getElementById("stepper");
+      const testOutput = document.getElementById("testOutput");
+      const resetDialog = document.getElementById("resetDialog");
+      const incident = () => model.incidents[state.incidentIndex];
+      function escapeHtml(value) { return String(value).replace(/[&<>"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[character])); }
+      function optionLabel(key, value) { return model.fields[key].options.find(option => option[0] === value)?.[1] || value || "No selection"; }
+
+      function renderStepper() {
+        stepper.innerHTML = steps.map((step, index) => `<button class="step-button" type="button" data-step="${index}" ${index === 8 && !state.submitted ? "disabled" : ""}><span class="step-number">${index}</span><span class="step-label"><strong>${step[0]}</strong><small>${step[1]}</small></span></button>`).join("");
+        stepper.querySelectorAll(".step-button").forEach(button => button.addEventListener("click", () => goTo(Number(button.dataset.step))));
+        updateStepper();
+      }
+      function renderFields() {
+        for (const [containerId, keys] of Object.entries(groups)) {
+          document.getElementById(containerId).innerHTML = keys.map(key => {
+            const field = model.fields[key];
+            const optionMarkup = field.options.map(option => `<option value="${escapeHtml(option[0])}">${escapeHtml(option[1])}</option>`).join("");
+            return `<div class="field" data-field-wrap="${key}"><label for="field-${key}">${escapeHtml(field.label)}<small class="training-cue">${escapeHtml(field.help)}</small></label><select id="field-${key}" data-field="${key}"><option value="">Choose…</option>${optionMarkup}</select><span class="field-note" aria-live="polite"></span></div>`;
+          }).join("");
+        }
+        document.querySelectorAll("select[data-field]").forEach(select => select.addEventListener("change", event => {
+          if (state.submitted) return;
+          state.answers[event.target.dataset.field] = event.target.value;
+          state.lastDiagnostic = null;
+          resetDiagnosticView();
+          updateProgress();
+        }));
+      }
+      function renderIncident() {
+        const current = incident();
+        document.getElementById("incidentMeta").textContent = current.id;
+        document.getElementById("domainMeta").textContent = current.domain;
+        document.getElementById("incidentId").textContent = current.id;
+        document.getElementById("incidentTitle").textContent = current.title;
+        document.getElementById("incidentTask").textContent = current.task;
+        document.getElementById("incidentFacts").innerHTML = [["Users", current.facts[0]], ["Initiator", current.facts[1]], ["Path", current.facts[2]], ["Required resource", current.facts[3]]].map(item => `<div class="fact"><small>${escapeHtml(item[0])}</small><strong>${escapeHtml(item[1])}</strong></div>`).join("");
+        document.getElementById("requirements").innerHTML = current.requirements.map(value => `<li>${escapeHtml(value)}</li>`).join("");
+        document.getElementById("branchSubnet").textContent = current.subnets[0];
+        document.getElementById("hqSubnet").textContent = current.subnets[1];
+        document.getElementById("branchPeer").textContent = current.peers[0];
+        document.getElementById("hqPeer").textContent = current.peers[1];
+        document.getElementById("natLabel").textContent = current.nat;
+        document.getElementById("serviceLabel").textContent = current.service;
+        document.getElementById("evidenceList").innerHTML = current.evidence.map((entry, index) => `<details class="event"><summary><time>${escapeHtml(entry[0])}</time><span class="event-source">${escapeHtml(entry[1])}</span><span class="event-code">${escapeHtml(entry[2])}</span></summary><div class="event-detail">EVENT ${String(index + 1).padStart(2, "0")} · correlation ${escapeHtml(current.id.toLowerCase())}\n${escapeHtml(entry[3])}</div></details>`).join("");
+      }
+      function updateStepper() {
+        stepper.querySelectorAll(".step-button").forEach((button, index) => {
+          if (index === state.screen) button.setAttribute("aria-current", "step"); else button.removeAttribute("aria-current");
+          button.classList.toggle("complete", (index < state.screen && index < 7) || (state.submitted && index <= 8));
+          if (index === 8) button.disabled = !state.submitted;
+        });
+      }
+      function goTo(index) {
+        if (index === 8 && !state.submitted) return;
+        state.screen = Math.max(0, Math.min(8, index));
+        screens.forEach((screen, screenIndex) => screen.classList.toggle("active", screenIndex === state.screen));
+        updateStepper();
+        document.querySelector(`.screen[data-screen="${state.screen}"] h2`)?.focus();
+        window.scrollTo({ top: document.querySelector(".progress-row").offsetTop - 10, behavior: "smooth" });
+      }
+      function updateProgress() {
+        const answered = model.fieldKeys.filter(key => state.answers[key]).length;
+        const percent = Math.round(answered / model.fieldKeys.length * 100);
+        document.getElementById("progressBar").style.width = `${percent}%`;
+        document.getElementById("progressCount").textContent = `${answered} / ${model.fieldKeys.length} answered`;
+        document.getElementById("submitAnswered").textContent = `${answered} of ${model.fieldKeys.length} answered`;
+      }
+      function updateConfidence() {
+        const labels = { "1": "Guessing", "2": "Uncertain", "3": "Mixed", "4": "Confident", "5": "Exam ready" };
+        document.getElementById("submitConfidence").textContent = state.confidence ? `Confidence ${state.confidence}/5 · ${labels[state.confidence]}` : "Confidence not recorded";
+      }
+      function diagnosticText(result) {
+        const examBeforeSubmit = state.mode === "exam" && !state.submitted;
+        const lines = [`[${result.code}]`, `FIRST UNRESOLVED: ${result.layer}`, `OBSERVED: ${result.observed}`];
+        if (examBeforeSubmit) lines.push("REMEDIATION: Hidden until submission in Exam mode.");
+        else lines.push(`ACTION: ${result.action}`, `NEXT: ${result.next}`);
+        return lines.join("\n");
+      }
+      function resetDiagnosticView() {
+        testOutput.className = "test-output";
+        testOutput.textContent = "Repair changed. Run the layered retest again.\n\nSequence: underlay → IKE proposal → authentication → Child SA → transport → route → ACL → application";
+        document.getElementById("diagnosticPath").classList.remove("pass", "fail");
+      }
+      function runDiagnostic() {
+        state.lastDiagnostic = model.diagnose(incident().id, state.answers);
+        testOutput.textContent = diagnosticText(state.lastDiagnostic);
+        testOutput.className = `test-output ${state.lastDiagnostic.ok ? "good" : "bad"}`;
+        document.getElementById("diagnosticPath").classList.toggle("pass", state.lastDiagnostic.ok);
+        document.getElementById("diagnosticPath").classList.toggle("fail", !state.lastDiagnostic.ok);
+      }
+      function applyFeedback(grade) {
+        document.querySelectorAll("select[data-field]").forEach(select => {
+          const key = select.dataset.field;
+          const result = grade.results.find(item => item.key === key);
+          const wrapper = document.querySelector(`[data-field-wrap="${key}"]`);
+          wrapper.classList.toggle("correct", result.correct);
+          wrapper.classList.toggle("incorrect", !result.correct);
+          wrapper.querySelector(".field-note").textContent = result.correct ? "Supported by this incident." : `Review: ${optionLabel(key, result.expected)}`;
+          select.disabled = true;
+        });
+      }
+      function renderResults(grade, diagnostic) {
+        document.getElementById("resultsEmpty").style.display = "none";
+        document.getElementById("results").classList.add("show");
+        document.getElementById("scoreValue").textContent = grade.score;
+        document.getElementById("scoreRing").style.setProperty("--score-angle", `${grade.score * 3.6}deg`);
+        document.getElementById("scoreTitle").textContent = grade.score >= 90 && diagnostic.ok ? "Evidence chain mastered" : grade.score >= 75 ? "Strong triage; tighten the causal chain" : "Rebuild from last good to first bad";
+        document.getElementById("scoreSummary").textContent = `${grade.correct} of ${grade.total} decisions correct. The simulated repair ended at ${diagnostic.code}.`;
+        document.getElementById("resultConfidence").textContent = state.confidence ? `Confidence ${state.confidence}/5` : "Confidence not recorded";
+        document.getElementById("resultDiagnostic").textContent = diagnostic.code;
+        document.getElementById("categoryResults").innerHTML = Object.values(grade.categories).map(category => `<div class="category-row"><strong>${escapeHtml(category.label)}</strong><div class="bar"><span style="width:${category.points / category.weight * 100}%"></span></div><em>${category.points} / ${category.weight}</em></div>`).join("");
+        const misses = grade.results.filter(result => !result.correct);
+        const causal = incident().fault;
+        const diagnosticCard = `<div class="remediation-item ${diagnostic.ok ? "good" : ""}"><strong>${escapeHtml(diagnostic.code)} · ${escapeHtml(diagnostic.layer)}</strong><span>${escapeHtml(diagnostic.observed)} ${escapeHtml(diagnostic.action)} Next: ${escapeHtml(diagnostic.next)}</span></div>`;
+        const chainCard = `<div class="remediation-item good"><strong>Canonical causal chain · ${escapeHtml(causal.code)}</strong><span>${escapeHtml(causal.observed)} First verify ${escapeHtml(optionLabel("firstVerification", incident().answers.firstVerification))}; success requires ${escapeHtml(optionLabel("successProof", incident().answers.successProof))}.</span></div>`;
+        const missCards = misses.slice(0, 10).map(result => `<div class="remediation-item"><strong>${escapeHtml(model.fields[result.key].label)}</strong><span>Selected: ${escapeHtml(optionLabel(result.key, result.actual))}. Evidence-supported: ${escapeHtml(optionLabel(result.key, result.expected))}.</span></div>`).join("");
+        const remaining = misses.length > 10 ? `<div class="notice warn">${misses.length - 10} additional corrections are marked on their workflow screens.</div>` : "";
+        document.getElementById("remediation").innerHTML = diagnosticCard + chainCard + missCards + remaining;
+      }
+      function submitAttempt() {
+        if (state.submitted) return;
+        state.submitted = true;
+        shell.classList.add("submitted");
+        const grade = model.grade(incident().id, state.answers);
+        const diagnostic = model.diagnose(incident().id, state.answers);
+        state.lastDiagnostic = diagnostic;
+        applyFeedback(grade);
+        renderResults(grade, diagnostic);
+        renderStepper();
+        goTo(8);
+      }
+      function clearAttempt({ keepIncident = true } = {}) {
+        if (!keepIncident) state.incidentIndex = (state.incidentIndex + 1) % model.incidents.length;
+        state.screen = 0; state.answers = {}; state.submitted = false; state.confidence = ""; state.lastDiagnostic = null;
+        shell.classList.remove("submitted");
+        document.querySelectorAll("select[data-field]").forEach(select => { select.value = ""; select.disabled = false; });
+        document.querySelectorAll(".field").forEach(field => field.classList.remove("correct", "incorrect"));
+        document.querySelectorAll(".field-note").forEach(note => { note.textContent = ""; });
+        document.querySelectorAll('input[name="confidence"]').forEach(input => { input.checked = false; });
+        document.getElementById("resultsEmpty").style.display = "block";
+        document.getElementById("results").classList.remove("show");
+        renderIncident(); renderStepper(); updateProgress(); updateConfidence(); resetDiagnosticView(); goTo(0);
+      }
+      function requestReset() {
+        if (typeof resetDialog.showModal === "function") resetDialog.showModal();
+        else if (window.confirm("Reset this attempt?")) clearAttempt({ keepIncident: true });
+      }
+
+      renderFields(); renderStepper(); renderIncident(); updateProgress(); updateConfidence();
+      document.querySelectorAll(".next").forEach(button => button.addEventListener("click", () => goTo(state.screen + 1)));
+      document.querySelectorAll(".back").forEach(button => button.addEventListener("click", () => goTo(state.screen - 1)));
+      document.querySelectorAll('input[name="confidence"]').forEach(input => input.addEventListener("change", event => { state.confidence = event.target.value; updateConfidence(); }));
+      document.getElementById("runTestBtn").addEventListener("click", runDiagnostic);
+      document.getElementById("submitBtn").addEventListener("click", submitAttempt);
+      document.getElementById("resetBtn").addEventListener("click", requestReset);
+      document.getElementById("cancelResetBtn").addEventListener("click", () => resetDialog.close());
+      document.getElementById("confirmResetBtn").addEventListener("click", () => { resetDialog.close(); clearAttempt({ keepIncident: true }); });
+      document.getElementById("retryBtn").addEventListener("click", () => clearAttempt({ keepIncident: true }));
+      document.getElementById("nextIncidentBtn").addEventListener("click", () => clearAttempt({ keepIncident: false }));
+      document.getElementById("newBtn").addEventListener("click", () => clearAttempt({ keepIncident: false }));
+      document.getElementById("modeBtn").addEventListener("click", event => {
+        state.mode = state.mode === "learn" ? "exam" : "learn";
+        shell.classList.toggle("exam-mode", state.mode === "exam");
+        event.currentTarget.setAttribute("aria-pressed", state.mode === "exam" ? "true" : "false");
+        event.currentTarget.textContent = `Mode: ${state.mode === "exam" ? "Exam" : "Learn"}`;
+        document.getElementById("modeMeta").textContent = state.mode === "exam" ? "Exam" : "Learn";
+        if (state.lastDiagnostic) testOutput.textContent = diagnosticText(state.lastDiagnostic);
+      });
+    })();
+  </script>
+</body>
+</html>
