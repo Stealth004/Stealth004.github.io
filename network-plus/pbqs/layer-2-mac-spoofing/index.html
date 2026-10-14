@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="An interactive Network+ N10-009 performance-based practice lab on VLAN 20 MAC spoofing, switch CAM tables, default gateways, and Layer 2 mitigation controls.">
+  <title>Network+ PBQ | Layer 2 MAC Spoofing | Practice Lab</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./app.js"></script>
+</head>
+<body>
+<main class="app">
+  <header class="site-header">
+    <div>
+      <div class="brand"><strong>Network+</strong> Performance-Based Question</div>
+      <p class="tagline">Network Troubleshooting · Layer 2 Attack · Interactive Practice</p>
+    </div>
+    <div class="header-actions">
+      <span id="score-status" class="status" aria-live="polite">NOT SCORED</span>
+      <button type="button" id="open-situation" class="btn gold">☰ Situation</button>
+    </div>
+  </header>
+
+  <section class="intro" aria-label="Objective">
+    <div class="objective"><strong>OBJECTIVE:</strong> Identify the compromised host, name the attack, and choose the switch-side controls that mitigate it.</div>
+    <p>Users at <strong>Marlin Ridge Logistics</strong> report intermittent connectivity issues. Review the Situation brief, inspect the topology and switch MAC table, and submit your answers. <strong>Nothing is scored until Finish &amp; Grade.</strong></p>
+  </section>
+
+  <div class="card-grid">
+    <section class="card" aria-labelledby="topology-heading">
+      <h2 id="topology-heading">VLAN 20 Network Map — Flag the Host Running the Attack</h2>
+      <p class="help">Select one device. Use the port and MAC evidence on the right.</p>
+      <svg class="topology" viewBox="0 0 720 336" role="group" aria-label="VLAN 20 topology with SW-CORE1, gateway, file server, three workstations and a printer">
+        <g class="link-line">
+          <path d="M360 157 L109 92"></path>
+          <path d="M360 157 L611 92"></path>
+          <path d="M360 182 L89 250"></path>
+          <path d="M360 182 L269 250"></path>
+          <path d="M360 182 L449 250"></path>
+          <path d="M360 182 L630 250"></path>
+        </g>
+        <g class="node" role="button" tabindex="0" aria-pressed="false" aria-label="Flag Router SVI gateway" data-device="gateway">
+          <rect x="8" y="22" width="202" height="72"></rect>
+          <text x="109" y="47" text-anchor="middle" class="main">Router SVI (gateway)</text>
+          <text x="109" y="66" text-anchor="middle" class="sub">192.168.20.1</text>
+          <text x="109" y="83" text-anchor="middle" class="port">0011.a0b2.dc01 · Gi1/0/1</text>
+        </g>
+        <g class="node" role="button" tabindex="0" aria-pressed="false" aria-label="Flag file server" data-device="server">
+          <rect x="510" y="22" width="202" height="72"></rect>
+          <text x="611" y="47" text-anchor="middle" class="main">File server</text>
+          <text x="611" y="66" text-anchor="middle" class="sub">192.168.20.40</text>
+          <text x="611" y="83" text-anchor="middle" class="port">a890.ee02.11a8 · Gi1/0/7</text>
+        </g>
+        <g class="node switch" role="button" tabindex="0" aria-pressed="false" aria-label="Flag SW-CORE1 switch" data-device="core">
+          <rect x="277" y="127" width="166" height="64"></rect>
+          <text x="360" y="151" text-anchor="middle" class="main">SW-CORE1</text>
+          <text x="360" y="172" text-anchor="middle" class="sub">Distribution switch</text>
+          <text x="360" y="184" text-anchor="middle" class="port">VLAN 20</text>
+        </g>
+        <g class="node" role="button" tabindex="0" aria-pressed="false" aria-label="Flag acct-ws03 workstation" data-device="ws03">
+          <rect x="5" y="250" width="168" height="68"></rect>
+          <text x="89" y="272" text-anchor="middle" class="main">acct-ws03</text>
+          <text x="89" y="289" text-anchor="middle" class="sub">192.168.20.23</text>
+          <text x="89" y="306" text-anchor="middle" class="port">Gi1/0/9 · .6b42</text>
+        </g>
+        <g class="node" role="button" tabindex="0" aria-pressed="false" aria-label="Flag acct-ws05 workstation" data-device="ws05">
+          <rect x="185" y="250" width="168" height="68"></rect>
+          <text x="269" y="272" text-anchor="middle" class="main">acct-ws05</text>
+          <text x="269" y="289" text-anchor="middle" class="sub">192.168.20.25</text>
+          <text x="269" y="306" text-anchor="middle" class="port">Gi1/0/11 · .77c8</text>
+        </g>
+        <g class="node" role="button" tabindex="0" aria-pressed="false" aria-label="Flag acct-ws08 workstation" data-device="ws08">
+          <rect x="365" y="250" width="168" height="68"></rect>
+          <text x="449" y="272" text-anchor="middle" class="main">acct-ws08</text>
+          <text x="449" y="289" text-anchor="middle" class="sub">192.168.20.28</text>
+          <text x="449" y="306" text-anchor="middle" class="port">Gi1/0/14 · .8d10</text>
+        </g>
+        <g class="node" role="button" tabindex="0" aria-pressed="false" aria-label="Flag network printer" data-device="printer">
+          <rect x="545" y="250" width="170" height="68"></rect>
+          <text x="630" y="272" text-anchor="middle" class="main">Network printer</text>
+          <text x="630" y="289" text-anchor="middle" class="sub">192.168.20.60</text>
+          <text x="630" y="306" text-anchor="middle" class="port">Gi1/0/22 · .a39e</text>
+        </g>
+      </svg>
+      <p class="selection" aria-live="polite">Flagged device: <strong id="selected-device">None selected</strong></p>
+    </section>
+
+    <section class="card" aria-labelledby="mac-heading">
+      <h2 id="mac-heading">SW-CORE1 — MAC Address Table (VLAN 20)</h2>
+      <p class="help">Review the recorded switch MAC observations.</p>
+      <div class="console" role="region" aria-label="MAC address table, scroll horizontally if required" tabindex="0">
+        <div class="command">SW-CORE1# show mac address-table dynamic vlan 20</div>
+        <table class="mac-table">
+          <thead><tr><th>VLAN</th><th>MAC Address</th><th>Type</th><th>Ports</th></tr></thead>
+          <tbody>
+            <tr><td>20</td><td>0011.a0b2.dc01</td><td>DYNAMIC</td><td>Gi1/0/1</td></tr>
+            <tr class="anomaly"><td>20</td><td>0011.a0b2.dc01</td><td>DYNAMIC</td><td>Gi1/0/14</td></tr>
+            <tr><td>20</td><td>02aa.7f19.6b42</td><td>DYNAMIC</td><td>Gi1/0/9</td></tr>
+            <tr><td>20</td><td>02aa.7f19.77c8</td><td>DYNAMIC</td><td>Gi1/0/11</td></tr>
+            <tr><td>20</td><td>02aa.7f19.8d10</td><td>DYNAMIC</td><td>Gi1/0/14</td></tr>
+            <tr><td>20</td><td>02aa.7f19.a39e</td><td>DYNAMIC</td><td>Gi1/0/22</td></tr>
+            <tr><td>20</td><td>a890.ee02.11a8</td><td>DYNAMIC</td><td>Gi1/0/7</td></tr>
+          </tbody>
+        </table>
+        <div class="console-footer">Total MAC observations for this exercise: 7</div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="controls-heading">
+      <h2 id="controls-heading">Switch-Side Controls That Mitigate This Attack</h2>
+      <p class="help">Choose all that apply. Every checkbox is independently scored.</p>
+      <div class="controls">
+        <label class="control"><input type="checkbox" data-control="port-security"> <span>Port security: limit/pin MACs per access port</span></label>
+        <label class="control"><input type="checkbox" data-control="password-reset"> <span>Company-wide user password reset</span></label>
+        <label class="control"><input type="checkbox" data-control="mac-table-increase"> <span>Increase the MAC address-table size limit</span></label>
+        <label class="control"><input type="checkbox" data-control="disable-svi"> <span>Disable the router SVI to stop the replies</span></label>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="questions-heading">
+      <h2 id="questions-heading">Answer the Questions</h2>
+      <div class="questions">
+        <div>
+          <label for="attack">What is happening on VLAN 20?</label>
+          <select id="attack">
+            <option value="">Select...</option>
+            <option value="on-path">On-path attack via MAC spoofing</option>
+            <option value="flood">MAC flooding to force the switch to fail open</option>
+            <option value="dhcp">DHCP starvation exhausting the address pool</option>
+            <option value="stp">Spanning-tree loop from a redundant link</option>
+          </select>
+        </div>
+        <div>
+          <label for="indicator">On the MAC address table, what is the primary indicator of the attack?</label>
+          <select id="indicator">
+            <option value="">Select...</option>
+            <option value="duplicate-gateway">The gateway MAC learned on two ports</option>
+            <option value="no-static">No static MAC addresses are listed</option>
+            <option value="missing">The gateway MAC is missing from the table</option>
+            <option value="duplicate-ip">Two ports sharing one IP address</option>
+          </select>
+        </div>
+      </div>
+      <p class="practice-tip">Think about the default gateway, MAC learning, access-port behavior, and traffic leaving the subnet.</p>
+    </section>
+  </div>
+
+  <div class="actions">
+    <button class="btn" type="button" id="reset">Reset PBQ</button>
+    <button class="btn primary" type="button" id="finish">Finish &amp; Grade →</button>
+  </div>
+
+  <section class="results" id="results" aria-live="polite" aria-labelledby="results-heading" hidden>
+    <h2 id="results-heading">Result &amp; Feedback</h2>
+    <p id="grade" class="grade"></p>
+    <table class="result-table">
+      <thead><tr><th>Task</th><th>Checks</th><th>Result</th></tr></thead>
+      <tbody id="result-rows"></tbody>
+    </table>
+    <div class="explanations">
+      <h3>Offending host</h3>
+      <p><strong>acct-ws08 (Gi1/0/14).</strong> The gateway MAC <code>0011.a0b2.dc01</code> is associated in the exercise evidence with its legitimate connection on <code>Gi1/0/1</code> and with <code>Gi1/0/14</code>. The acct-ws08 workstation also has its own MAC <code>02aa.7f19.8d10</code> on <code>Gi1/0/14</code>.</p>
+      <h3>Attack in progress</h3>
+      <p><strong>On-path attack via MAC spoofing.</strong> The attacker impersonates the gateway MAC to try to receive frames intended for the real gateway. As the switch relearns the MAC on different ports, forwarding can become unstable, resulting in slow or dropped sessions.</p>
+      <h3>Mitigation</h3>
+      <p><strong>Port security: limit/pin MACs per access port.</strong> Configure an appropriate per-port MAC limit and permitted or sticky secure MAC policy to block the unauthorized gateway MAC on an endpoint port. Investigate the workstation and isolate the affected port. Increasing the MAC table limit does not stop spoofing, a user password reset is unrelated, and disabling the gateway SVI breaks VLAN routing for everyone.</p>
+      <h3>Layer 2 ↔ Layer 3 relationship</h3>
+      <p>A workstation compares the destination IP with its local subnet. For a remote IP, it uses the default gateway's IP as the next hop and resolves the gateway's Layer 2 MAC via ARP. The Ethernet frame then carries the gateway MAC as its destination. The switch forwards based on its MAC address table, which is what this attack attempts to manipulate.</p>
+      <div class="callout"><strong>Real-equipment nuance:</strong> The screenshot's seven-row table is illustrative evidence. A typical switch maintains one active forwarding entry per MAC/VLAN at a time, so in production you would often investigate MAC address flapping, moving-port logs, or repeated table snapshots rather than expect both entries to coexist in a single conventional CAM table display.</div>
+    </div>
+    <div class="actions"><button type="button" class="btn" id="try-again">Try Again</button></div>
+  </section>
+
+  <footer class="footnote">
+    Independent educational practice replica of a PBQ shown in user-provided screenshots. Not an official CompTIA exam item; not affiliated with CompTIA or Cyberkraft. All scoring happens locally in your browser. Practice selections are saved locally on this device.
+  </footer>
+
+  <div class="overlay" id="situation-modal">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="brief-heading">
+      <div class="modal-header">
+        <h2 id="brief-heading">Situation · Brief</h2>
+        <button type="button" class="close" id="close-situation" aria-label="Close situation brief">×</button>
+      </div>
+      <div class="modal-body">
+        <h3>ENVIRONMENT</h3>
+        <p>Marlin Ridge Logistics has a single distribution switch (<strong>SW-CORE1</strong>) serving the accounting department (<strong>VLAN 20, 192.168.20.0/24</strong>). The default gateway for the VLAN is a Layer 3 switch SVI at <strong>192.168.20.1</strong>. All hosts obtain addresses via DHCP.</p>
+        <h3>THE REPORT</h3>
+        <p>Accounting users report slow or dropped sessions. After investigation, it is determined that the issues primarily involve traffic leaving the VLAN, including data sent to other departments.</p>
+        <h3>YOUR TASK</h3>
+        <p>Use the MAC table and the VLAN map to locate the offending device, identify the attack, and choose the switch-side controls that would mitigate it.</p>
+      </div>
+      <div class="modal-actions"><button class="btn primary" id="start-practice" type="button">Start PBQ →</button></div>
+    </section>
+  </div>
+</main>
+</body>
+</html>
