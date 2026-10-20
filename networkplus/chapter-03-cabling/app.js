@@ -76,7 +76,7 @@
   let progress=Object.assign({attempts:0,correct:0,weak:{},completed:{}},read());
   let current='home',mediumId='utp',connectorId='rj45';
   let wiring={task:'straight',end:0,selected:'WO',A:Array(8).fill(null),B:Array(8).fill(null),graded:null,guide:false};
-  let dIndex=0,dSelection={media:'',conn:'',jacket:''},dGrade=null;
+  let dIndex=0,dSelection={media:'',conn:'',jacket:''},dGrade=null,dTries=0;
   let fIndex=0,fStep=0,fAnswers=[],fGrade=null;
   let exam={mode:null,index:0,answers:[],confidence:[],finished:false,seen:false};
   const $=s=>document.querySelector(s);
@@ -243,15 +243,18 @@
     if(dSelection.media===''||dSelection.conn===''||dSelection.jacket===''){toast('Select all three constraints first.');return}
     const good=Number(dSelection.media)===d.media&&Number(dSelection.conn)===d.conn&&Number(dSelection.jacket)===d.jacket;
     record('design-'+dIndex,good);
-    dGrade={good,text:good?d.reason:'Your current combination has a mismatch. Check all three decisions; the correct target is '+linkMedia[d.media]+' + '+linkConnect[d.conn]+' + '+jackets[d.jacket]+'. '+d.reason};
+    if(!good)dTries++;
+    dGrade={good,text:good?d.reason:dTries>1?'Review the target combination: '+linkMedia[d.media]+' + '+linkConnect[d.conn]+' + '+jackets[d.jacket]+'. '+d.reason:'Your design conflicts with at least one requirement. Check the link distance, the available port and optic type, and the installation environment. Revise the choices and retest.'};
     renderDesign();
   };
   const renderFault=()=>{
     const f=faults[fIndex],stageNames=['Select the best confirming test','Identify the most likely root cause','Choose the minimal correction'];
     const opts=fStep===0?f.test:fStep===1?f.cause:f.fix;
+    const rotation=(fIndex+fStep+1)%3;
+    const order=[0,1,2].slice(rotation).concat([0,1,2].slice(0,rotation));
     let body='<div class="grid-2"><div class="panel"><div class="kicker">FAULT '+(fIndex+1)+' / '+faults.length+'</div><h2 class="scenario-title">'+f.name+'</h2><p class="scenario-description">'+f.description+'</p><div class="visual-stage slim">'+faultVisual(fIndex)+'</div><table class="data-table"><tbody>'+f.data.map(x=>'<tr><th>'+x[0]+'</th><td>'+x[1]+'</td></tr>').join('')+'</tbody></table><div class="callout">Hypothesis → evidence → safe correction → verification. Do not make unrelated Layer 3 changes for a Layer 1 symptom.</div></div><div class="panel"><div class="steps">'+['TEST','CAUSE','FIX'].map((t,i)=>'<span class="step '+(i===fStep?'active':'')+'">'+(i+1)+' · '+t+'</span>').join('')+'</div>';
     if(fGrade){const ok=fGrade.good;body+='<h2>'+(ok?'Fault isolated':'Review the evidence')+'</h2><div class="feedback '+(ok?'ok':'bad')+'"><b>'+(fGrade.score)+'/3 correct decisions</b><p>'+f.why+'</p></div><div class="reason-block"><h3>Correct diagnostic chain</h3><p><b>Test:</b> '+f.test[f.answers[0]]+'</p><p><b>Cause:</b> '+f.cause[f.answers[1]]+'</p><p><b>Fix:</b> '+f.fix[f.answers[2]]+'</p><p><b>Verify:</b> link status, interface errors, signal performance and client connectivity after the targeted correction.</p></div><div class="final-actions">'+btn('Repeat this fault','fault-repeat')+btn('Next fault →','fault-next','primary')+'</div>'}
-    else{body+='<h2>'+stageNames[fStep]+'</h2><p class="tiny muted">'+(fStep===0?'Choose what would confirm or reject a physical-layer hypothesis.':fStep===1?'Use the symptoms and selected test to infer the cause.':'Make the smallest appropriate correction, then verify.')+'</p><div class="choice-list">'+opts.map((o,i)=>'<button class="choice '+(fAnswers[fStep]===i?'chosen':'')+'" data-fault-choice="'+i+'"><span class="letter">'+String.fromCharCode(65+i)+'</span>'+o+'</button>').join('')+'</div><div class="final-actions">'+btn(fStep===2?'Complete diagnosis':'Continue →','fault-advance','primary')+'</div>';}
+    else{body+='<h2>'+stageNames[fStep]+'</h2><p class="tiny muted">'+(fStep===0?'Choose what would confirm or reject a physical-layer hypothesis.':fStep===1?'Use the symptoms and selected test to infer the cause.':'Make the smallest appropriate correction, then verify.')+'</p><div class="choice-list">'+order.map((orig,i)=>'<button class="choice '+(fAnswers[fStep]===orig?'chosen':'')+'" data-fault-choice="'+orig+'"><span class="letter">'+String.fromCharCode(65+i)+'</span>'+opts[orig]+'</button>').join('')+'</div><div class="final-actions">'+btn(fStep===2?'Complete diagnosis':'Continue →','fault-advance','primary')+'</div>';}
     body+='</div></div>';$('#fault-view').innerHTML=body;
   };
   const faultVisual=i=>{
@@ -283,7 +286,9 @@
       body='<div class="panel quiz-wrap"><div class="kicker">DEBRIEF · '+exam.mode.toUpperCase()+'</div><h2>Exam attempt complete</h2><div class="summary-score">'+pct+'%</div><p>'+right+' of '+questions.length+' correct. Focus on the reasoning for misses, not only the percent correct.</p><div class="final-actions">'+btn('Restart guided','exam-guided','primary')+btn('Retake independent','exam-independent')+'</div><h2 style="margin-top:25px">Rationale and distractor review</h2>'+questions.map((q,i)=>'<div class="review-item"><div class="kicker">QUESTION '+(i+1)+' · '+q.tag+'</div><h4>'+q.q+'</h4><p>Your response: <b style="color:'+(exam.answers[i]===q.a?'#a7f59a':'#ff9f9f')+'">'+(q.opts[exam.answers[i]]||'Not answered')+'</b></p><p><b>Correct:</b> '+q.opts[q.a]+'. '+q.why+'</p>'+(exam.answers[i]!==q.a?'<p><b>Why your answer fails:</b> '+(q.wrong[exam.answers[i]]||'Review the defining requirement.')+'</p>':'')+'</div>').join('')+'</div>';
     }else{
       const i=exam.index,q=questions[i],selected=exam.answers[i],isGuided=exam.mode==='guided',show=isGuided&&exam.seen;
-      body='<div class="panel quiz-wrap"><div class="quiz-toolbar"><span class="kicker">QUESTION '+(i+1)+' / '+questions.length+' · '+q.tag.toUpperCase()+'</span><span class="tag">'+(isGuided?'GUIDED':'INDEPENDENT')+'</span></div><div class="quiz-progress"><span style="width:'+Math.round((i+1)/questions.length*100)+'%"></span></div><h2 class="scenario-title">'+q.q+'</h2><div class="choice-list">'+q.opts.map((o,j)=>'<button class="choice '+(selected===j?'chosen':'')+' '+(show?(j===q.a?'correct':j===selected?'wrong':''):'')+'" data-exam-choice="'+j+'" '+(show?'disabled':'')+'><span class="letter">'+String.fromCharCode(65+j)+'</span>'+o+'</button>').join('')+'</div><div class="select-row"><div class="tiny muted">Confidence: </div><button class="chip '+(exam.confidence[i]==='sure'?'selected':'')+'" data-confidence="sure">Sure</button><button class="chip '+(exam.confidence[i]==='unsure'?'selected':'')+'" data-confidence="unsure">Unsure</button></div>';
+      const offset=(i*3+1)%4;
+      const qOrder=[0,1,2,3].slice(offset).concat([0,1,2,3].slice(0,offset));
+      body='<div class="panel quiz-wrap"><div class="quiz-toolbar"><span class="kicker">QUESTION '+(i+1)+' / '+questions.length+' · '+q.tag.toUpperCase()+'</span><span class="tag">'+(isGuided?'GUIDED':'INDEPENDENT')+'</span></div><div class="quiz-progress"><span style="width:'+Math.round((i+1)/questions.length*100)+'%"></span></div><h2 class="scenario-title">'+q.q+'</h2><div class="choice-list">'+qOrder.map((orig,j)=>'<button class="choice '+(selected===orig?'chosen':'')+' '+(show?(orig===q.a?'correct':orig===selected?'wrong':''):'')+'" data-exam-choice="'+orig+'" '+(show?'disabled':'')+'><span class="letter">'+String.fromCharCode(65+j)+'</span>'+q.opts[orig]+'</button>').join('')+'</div><div class="select-row"><div class="tiny muted">Confidence: </div><button class="chip '+(exam.confidence[i]==='sure'?'selected':'')+'" data-confidence="sure">Sure</button><button class="chip '+(exam.confidence[i]==='unsure'?'selected':'')+'" data-confidence="unsure">Unsure</button></div>';
       if(show){body+='<div class="feedback '+(selected===q.a?'ok':'bad')+'"><b>'+(selected===q.a?'Correct.':'Not quite.')+'</b><p>'+q.why+'</p>'+(selected!==q.a?'<p><b>Distractor:</b> '+q.wrong[selected]+'</p>':'')+'</div>'}
       body+='<div class="final-actions">'+(isGuided&&!show?btn('Check answer','exam-check','primary'):btn(i===questions.length-1?'Finish & debrief':'Next question →','exam-next','primary'))+'</div></div>';
     }
@@ -332,7 +337,7 @@
         case 'wire-clear':wiring.A.fill(null);wiring.B.fill(null);wiring.graded=null;renderWire();break;
         case 'wire-guide':wiring.guide=!wiring.guide;renderWire();break;
         case 'design-grade':gradeDesign();break;
-        case 'design-next':dIndex=(dIndex+1)%designs.length;dSelection={media:'',conn:'',jacket:''};dGrade=null;renderDesign();break;
+        case 'design-next':dIndex=(dIndex+1)%designs.length;dSelection={media:'',conn:'',jacket:''};dGrade=null;dTries=0;renderDesign();break;
         case 'fault-advance':faultAdvance();break;
         case 'fault-next':fIndex=(fIndex+1)%faults.length;fStep=0;fAnswers=[];fGrade=null;renderFault();break;
         case 'fault-repeat':fStep=0;fAnswers=[];fGrade=null;renderFault();break;
