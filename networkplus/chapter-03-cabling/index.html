@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1526">
+  <meta name="description" content="Visual and interactive CompTIA Network+ N10-009 Chapter 3 cabling simulation with original PBQs.">
+  <title>NET-005A · Cable Lab | Network+ N10-009</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to simulation</a>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Lab modules">
+      <a class="brand" href="#home"><span class="brand-icon">⌁</span><span><b>NETWORK<span class="mint">/LAB</span></b><small>N10-009 LEARNING SYSTEM</small></span></a>
+      <div class="chapter-id">LAB NET-005A <span class="pill">v1.0</span></div>
+      <h2 class="side-title">CHAPTER 03</h2>
+      <div class="side-sub">Connectors &amp; Wiring</div>
+      <nav class="nav" id="nav">
+        <button data-page="home" class="active"><span class="nav-ico">▦</span> Overview</button>
+        <button data-page="atlas"><span class="nav-ico">◈</span> Cable &amp; Connector Atlas</button>
+        <button data-page="wire"><span class="nav-ico">◫</span> Wire a RJ45</button>
+        <button data-page="design"><span class="nav-ico">⌁</span> Design a Link</button>
+        <button data-page="fault"><span class="nav-ico">⚒</span> Fault Finder</button>
+        <button data-page="exam"><span class="nav-ico">✦</span> Exam Arena</button>
+        <button data-page="map"><span class="nav-ico">◎</span> Functional Map</button>
+      </nav>
+      <div class="sidebar-foot"><div class="smallcaps">LOCAL LEARNING RECORD</div><div class="mini-progress"><span id="side-progress"></span></div><p id="side-stat">Practice saves on this device.</p><button class="subtle-button" id="reset-data">Reset progress</button></div>
+    </aside>
+    <div class="content">
+      <header class="topbar"><div><span class="crumb">NETWORK+ / CONCEPTS / </span><b id="crumb-current">OVERVIEW</b></div><div class="top-right"><span class="tag">DOMAIN 1.5 + 5.2</span><span class="tag accent">● VISUAL LAB</span></div></header>
+      <main id="main" tabindex="-1">
+        <section id="page-home" class="page active">
+          <div class="hero">
+            <div class="hero-copy"><div class="eyebrow">PERFORMANCE-BASED LEARNING · CHAPTER 3</div><h1>See the wire.<br><span>Understand the network.</span></h1><p>Explore physical media, terminate copper, select appropriate links, and troubleshoot faults from evidence—not guesswork.</p><div class="actions"><button class="primary" data-go="wire">Start wiring lab <span>↗</span></button><button class="secondary" data-go="atlas">Explore cable atlas</button></div><div class="hero-micro">Original practice items · Guided feedback · Exam mode · Mobile-ready</div></div>
+            <div class="hero-visual" id="hero-visual" role="img" aria-label="Visual of eight colored RJ45 conductors entering a transparent connector"></div>
+          </div>
+          <div class="section-line"><h2>Your training modules</h2><p>Learn → apply → diagnose → retrieve</p></div>
+          <div class="module-grid">
+            <button class="module" data-go="atlas"><span class="module-n">01 / DISCOVER</span><span class="module-icon">◈</span><strong>Cable &amp; Connector Atlas</strong><span>Visuals for UTP, STP, coax, fiber, DAC, transceivers and connector shapes.</span><em>OPEN MODULE ↗</em></button>
+            <button class="module" data-go="wire"><span class="module-n">02 / BUILD</span><span class="module-icon">◫</span><strong>RJ45 Wiring Bench</strong><span>Physically map all 8 pins, T568A/B, straight-through and crossover.</span><em>OPEN MODULE ↗</em></button>
+            <button class="module" data-go="design"><span class="module-n">03 / DECIDE</span><span class="module-icon">⌁</span><strong>Link Design Challenge</strong><span>Choose the right medium and termination under real constraints.</span><em>OPEN MODULE ↗</em></button>
+            <button class="module" data-go="fault"><span class="module-n">04 / TROUBLESHOOT</span><span class="module-icon">⚒</span><strong>Fault Finder PBQs</strong><span>Inspect symptoms, pick a test, isolate root cause, and select a fix.</span><em>OPEN MODULE ↗</em></button>
+            <button class="module" data-go="exam"><span class="module-n">05 / RETRIEVE</span><span class="module-icon">✦</span><strong>Exam Arena</strong><span>Original scenario questions, distractor analysis, and a mastery log.</span><em>OPEN MODULE ↗</em></button>
+            <button class="module" data-go="map"><span class="module-n">06 / CONNECT</span><span class="module-icon">◎</span><strong>Functional Relationship Map</strong><span>Connect physical properties, constraints, tools, and failure evidence.</span><em>OPEN MODULE ↗</em></button>
+          </div>
+          <div class="bottom-strip"><div><strong id="total-solved">0</strong><small>correct checkpoints</small></div><div><strong id="total-attempts">0</strong><small>recorded attempts</small></div><div><strong id="weak-total">0</strong><small>questions to revisit</small></div><div><strong>1.5 + 5.2</strong><small>exam objectives</small></div></div>
+        </section>
+        <section id="page-atlas" class="page"><div class="page-head"><div class="eyebrow">01 / DISCOVER &amp; CONNECT</div><h1>Physical media atlas</h1><p>Click every material and connector. Read the functional distinction and the likely exam trap.</p></div><div id="atlas-view"></div></section>
+        <section id="page-wire" class="page"><div class="page-head"><div class="eyebrow">02 / INTERACTIVE BENCH</div><h1>RJ45 termination bench</h1><p>Select a conductor color, then assign it to pins 1–8 on each connector. Test your build.</p></div><div id="wire-view"></div></section>
+        <section id="page-design" class="page"><div class="page-head"><div class="eyebrow">03 / CONSTRAINT-BASED DECISIONS</div><h1>Design the physical link</h1><p>Choose media that satisfy the environment, distance, required data rate, and endpoint interface.</p></div><div id="design-view"></div></section>
+        <section id="page-fault" class="page"><div class="page-head"><div class="eyebrow">04 / PBQ TROUBLESHOOTING</div><h1>Fault finder</h1><p>Observe → choose the confirming test → identify the root cause → correct → verify.</p></div><div id="fault-view"></div></section>
+        <section id="page-exam" class="page"><div class="page-head"><div class="eyebrow">05 / EXAM LOGIC</div><h1>Exam arena</h1><p>Original N10-009-style questions. Independent mode withholds explanations until the end.</p></div><div id="exam-view"></div></section>
+        <section id="page-map" class="page"><div class="page-head"><div class="eyebrow">06 / MENTAL MODEL</div><h1>How the pieces connect</h1><p>A link works only when its medium, ends, environment, standards, and verification agree.</p></div><div id="map-view"></div></section>
+      </main>
+      <footer>Independent educational simulator · Aligned to CompTIA Network+ N10-009 · Not affiliated with or endorsed by CompTIA · Visual diagrams are schematic, not scale drawings.</footer>
+    </div>
+  </div>
+  <div id="toast" class="toast" aria-live="polite"></div>
+</body>
+</html>
