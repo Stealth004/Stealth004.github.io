@@ -74,7 +74,15 @@
   ];
   const read=()=>{try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch(e){return {}}};
   let progress=Object.assign({attempts:0,correct:0,weak:{},completed:{}},read());
-  let current='home',mediumId='utp',connectorId='rj45';
+  let current='home',mediumId='utp',connectorId='rj45',cablingNode=0;
+  const structuredNodes=[
+    ['Work area','Computer uses a flexible patch cord to reach an Ethernet wall outlet. The patch cord counts toward the total channel length.'],
+    ['Wall jack','A keystone RJ45 jack usually has IDC punch-down connections on its rear. Follow a complete T568A or T568B color scheme.'],
+    ['Horizontal run','Fixed solid-conductor cable runs through pathways to the IDF. Typical copper permanent link max is 90 m; total channel max is 100 m.'],
+    ['Patch panel','The IDF patch panel terminates fixed cable on its back and exposes numbered RJ45 ports on the front. It is passive: it does not forward frames.'],
+    ['Switch port','A short patch cord connects the panel to an active access switch. A user can be moved by changing the panel-to-switch patching.'],
+    ['MDF / uplink','The IDF normally uplinks to an MDF/core via a suitable backbone, often fiber. The MDF may be near service-provider handoff/demarc.']
+  ];
   let wiring={task:'straight',end:0,selected:'WO',A:Array(8).fill(null),B:Array(8).fill(null),graded:null,guide:false};
   let dIndex=0,dSelection={media:'',conn:'',jacket:''},dGrade=null,dTries=0;
   let fIndex=0,fStep=0,fAnswers=[],fGrade=null;
@@ -191,10 +199,28 @@
     if(page==='atlas')renderAtlas();if(page==='wire')renderWire();if(page==='design')renderDesign();if(page==='fault')renderFault();if(page==='exam')renderExam();if(page==='map')renderMap();
     window.scrollTo({top:0,behavior:'instant'});
   };
+  const structuredArt=()=>{
+    const names=['PC','WALL JACK','HORIZONTAL','PATCH PANEL','SWITCH','MDF'];
+    let b='';
+    for(let i=0;i<6;i++){
+      const x=9+i*130;
+      if(i<5)b+=line(x+113,95,x+129,95,i===2?'#efbe79':'#65d8c2',5);
+      b+=box(x,52,113,92,i===cablingNode?'#1b685a':'#253f53',i===cablingNode?'#91fbe1':'#5f8599',12);
+      if(i===0)b+=box(x+34,70,44,38,'#91c5c8','#d9f6fa',4);
+      if(i===1)b+=box(x+31,72,51,33,'#accbd3','#edfcf7',5);
+      if(i===2)for(let j=0;j<4;j++)b+=line(x+18,71+j*14,x+95,71+j*14,['#e8ae62','#5ddb9c','#5e9bf0','#bb8c71'][j],4);
+      if(i===3||i===4)for(let j=0;j<4;j++)b+=box(x+17+j*21,78,15,19,i===3?'#a6c5cd':'#5ee0b7','#dff7f6',3);
+      if(i===5)b+=box(x+25,69,63,38,'#b4c4ce','#e1faff',4);
+      b+=label(x+56,166,names[i],12,i===cablingNode?'#79f6cf':'#cee1ef');
+    }
+    b+=label(395,211,'PATCH CORD → PERMANENT LINK → PATCH CORD → ACTIVE SWITCH → BACKBONE',13,'#f1bf7a');
+    return svg(b,'0 0 790 230');
+  };
   const renderAtlas=()=>{
     const m=mediums.find(x=>x.id===mediumId),c=connectors.find(x=>x.id===connectorId);
     $('#atlas-view').innerHTML='<div class="panel"><div class="panel-title"><h2>01 · Transmission media</h2><span class="tiny muted">Compare by construction, use, and constraint</span></div><div class="tabs">'+mediums.map(x=>'<button class="tab '+(x.id===mediumId?'active':'')+'" data-medium="'+x.id+'">'+x.name+'</button>').join('')+'</div><div class="grid-2"><div class="visual-stage">'+mediaArt(m.id)+'</div><div><div class="kicker">'+m.kicker+'</div><h2 style="font-size:27px;margin:7px 0">'+m.name+'</h2><p>'+m.subtitle+'</p><div class="fact-list">'+m.facts.map(f=>'<div class="fact"><b>'+f[0]+'</b><span>'+f[1]+'</span></div>').join('')+'</div></div></div><div class="exam-tip"><b>EXAM TRAP</b> · '+m.tip+'</div></div>'+
     '<div class="panel" style="margin-top:15px"><div class="panel-title"><h2>02 · Connector and transceiver visual gallery</h2><span class="tiny muted">Select a connector to inspect it</span></div><div class="connector-grid">'+connectors.map(x=>'<button class="connector-card '+(x.id===connectorId?'selected':'')+'" data-connector="'+x.id+'">'+connectorArt(x.id)+'<b>'+x.name+'</b><small>'+((x.id==='sfp'||x.id==='qsfp')?'Module form factor':'Physical connection')+'</small></button>').join('')+'</div><div class="grid-2"><div class="visual-stage slim">'+connectorArt(c.id)+'</div><div><div class="kicker">SELECTED ITEM</div><h2>'+c.name+'</h2><p>'+c.desc+'</p><div class="exam-tip"><b>EXAM TRAP</b> · '+c.trap+'</div></div></div></div>'+
+    '<div class="panel" style="margin-top:15px"><div class="panel-title"><h2>03 · Trace a real structured-cabling path</h2><span class="tiny muted">Select each physical segment</span></div><div class="visual-stage">'+structuredArt()+'</div><div class="tabs" style="margin-top:15px">'+structuredNodes.map((x,i)=>'<button class="tab '+(i===cablingNode?'active':'')+'" data-cabling-node="'+i+'">'+(i+1)+' · '+x[0]+'</button>').join('')+'</div><div class="notice"><b>'+structuredNodes[cablingNode][0]+':</b> '+structuredNodes[cablingNode][1]+'</div><div class="callout"><b>Exam distinction:</b> 90 m is a common permanent copper link limit; 100 m is the channel including patch cords. The passive patch panel does not replace the Ethernet switch.</div></div>'+
     '<div class="notice">Mental rule: <b>environment + distance + throughput</b> determines the medium; <b>interfaces + transceivers</b> determine the compatible connector. A connector shape alone does not tell you link speed.</div>';
   };
   const wireGoal=()=>wiring.task==='A'?[A,A]:wiring.task==='cross'?[A,B]:[B,B];
@@ -324,6 +350,7 @@
     if(target.dataset.go)go(target.dataset.go);
     if(target.dataset.medium){mediumId=target.dataset.medium;renderAtlas()}
     if(target.dataset.connector){connectorId=target.dataset.connector;renderAtlas()}
+    if(target.dataset.cablingNode!==undefined){cablingNode=Number(target.dataset.cablingNode);renderAtlas()}
     if(target.dataset.wireTask){wiring={task:target.dataset.wireTask,end:0,selected:'WO',A:Array(8).fill(null),B:Array(8).fill(null),graded:null,guide:false};renderWire()}
     if(target.dataset.wireEnd!==undefined){wiring.end=Number(target.dataset.wireEnd);renderWire()}
     if(target.dataset.swatch){wiring.selected=target.dataset.swatch;renderWire()}
