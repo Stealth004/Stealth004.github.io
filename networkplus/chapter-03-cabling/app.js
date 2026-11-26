@@ -378,6 +378,9 @@
   document.addEventListener('change',e=>{if(e.target.dataset.design){dSelection[e.target.dataset.design]=e.target.value;dGrade=null;}});
   $('#reset-data').addEventListener('click',()=>{if(confirm('Clear all saved Chapter 3 practice history on this browser?')){progress={attempts:0,correct:0,weak:{},completed:{}};save();toast('Local learning record reset.')}});
   $('#hero-visual').innerHTML=heroSvg();
-  renderStats();go('home');
+  renderStats();
+  const deepLinkPage=()=>{const hash=window.location.hash.slice(1);return ['home','atlas','wire','design','fault','exam','map'].includes(hash)?hash:'home'};
+  go(deepLinkPage());
+  window.addEventListener('hashchange',()=>go(deepLinkPage()));
   window.NET005A={getQuizCount:()=>questions.length,getMediaCount:()=>mediums.length,getConnectorCount:()=>connectors.length,getDesignCount:()=>designs.length,getFaultCount:()=>faults.length};
 })();
